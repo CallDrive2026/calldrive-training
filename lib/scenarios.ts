@@ -1383,6 +1383,874 @@ export const SCENARIOS: Scenario[] = [
     ],
     passingScore: 85,
   },
+
+
+  // ---------- SALES ADDITIONS ----------
+  {
+    id: "sales-inventory-color-check",
+    role: "sales",
+    level: "newbie",
+    title: "Inventory Color Check",
+    situation:
+      "A caller wants to know if a specific SUV is in stock in a particular color, or if it would need to be ordered.",
+    audioUrl:
+      "https://static.galaxy.ai/user_39iXjxyQdmhoj5bVhki8e1ab0c2/42f40b36-6a1a-43fe-b8d7-d17053384a6c.mp3",
+    checklist: [
+      "Asked which specific model/trim they're referring to",
+      "Offered to check live inventory instead of guessing",
+      "Explained the difference between in-stock and order/build options if not available",
+      "Offered to text or email photos of the in-stock unit",
+      "Invited them in for a test drive or to hold the vehicle",
+    ],
+    questions: [
+      {
+        id: "sales-inventory-color-check-q1",
+        question: "What's the best first step when a caller asks about a specific color/trim?",
+        options: ["Guess based on memory", "Check live inventory before answering", "Tell them to check the website themselves", "Say it's probably sold"],
+        correctIndex: 1,
+        explanation: "Always verify live inventory rather than guessing from memory.",
+      },
+      {
+        id: "sales-inventory-color-check-q2",
+        question: "If the color isn't in stock, what's the best next move?",
+        options: ["End the call", "Explain order/build options and timelines", "Tell them to try a competitor", "Offer no alternative"],
+        correctIndex: 1,
+        explanation: "Give them a real path forward, like ordering the vehicle.",
+      },
+      {
+        id: "sales-inventory-color-check-q3",
+        question: "What builds confidence and urgency on this type of call?",
+        options: ["Being vague about availability", "Offering to send photos and inviting them in", "Rushing the caller off the phone", "Quoting a price with no context"],
+        correctIndex: 1,
+        explanation: "Visual proof and an invitation to visit drive next steps.",
+      },
+    ],
+    passingScore: 70,
+  },
+  {
+    id: "sales-first-time-buyer-basics",
+    role: "sales",
+    level: "newbie",
+    title: "First-Time Buyer Basics",
+    situation:
+      "A caller has never bought a car before and wants a simple walkthrough of the buying process.",
+    audioUrl:
+      "https://static.galaxy.ai/user_39iXjxyQdmhoj5bVhki8e1ab0c2/0e0dc62c-86b3-4afd-8d64-7ef6670056e6.mp3",
+    checklist: [
+      "Used a warm, patient, jargon-free tone",
+      "Explained the basic steps: browse/test drive, financing/paperwork, delivery",
+      "Asked about budget and whether they plan to finance or pay cash",
+      "Reassured them that staff will guide them through every step in person",
+      "Invited them in for a no-pressure visit",
+    ],
+    questions: [
+      {
+        id: "sales-first-time-buyer-basics-q1",
+        question: "How should you speak to a first-time buyer?",
+        options: ["Use as much industry jargon as possible", "Simply and patiently, avoiding jargon", "Rush through details", "Assume they already know the process"],
+        correctIndex: 1,
+        explanation: "First-time buyers need clarity, not jargon.",
+      },
+      {
+        id: "sales-first-time-buyer-basics-q2",
+        question: "What's a key question to ask early in this call?",
+        options: ["Their social security number", "Whether they plan to finance or pay cash", "Their exact credit score", "Nothing, just book an appointment"],
+        correctIndex: 1,
+        explanation: "Understanding financing intent shapes the right next steps.",
+      },
+      {
+        id: "sales-first-time-buyer-basics-q3",
+        question: "What tone reduces first-time buyer anxiety?",
+        options: ["Pressuring them to decide today", "Reassuring and no-pressure", "Vague and rushed", "Overly technical"],
+        correctIndex: 1,
+        explanation: "A reassuring, no-pressure tone builds trust with new buyers.",
+      },
+    ],
+    passingScore: 70,
+  },
+  {
+    id: "sales-stock-check-followup",
+    role: "sales",
+    level: "newbie",
+    title: "Stock Check Follow-Up",
+    situation:
+      "A caller who inquired earlier wants to confirm a vehicle is still available and set up a time to see it.",
+    audioUrl:
+      "https://static.galaxy.ai/user_39iXjxyQdmhoj5bVhki8e1ab0c2/53c31592-da24-4076-bb70-2d8fc277b3d9.mp3",
+    checklist: [
+      "Looked up or asked for details from the earlier inquiry",
+      "Confirmed current availability before promising anything",
+      "Proposed a specific time for them to come see the vehicle",
+      "Got a callback number in case plans change",
+      "Thanked them for following up",
+    ],
+    questions: [
+      {
+        id: "sales-stock-check-followup-q1",
+        question: "Before confirming availability, you should:",
+        options: ["Assume it's still there", "Actually verify current status", "Tell them to just come by and hope", "Transfer them elsewhere"],
+        correctIndex: 1,
+        explanation: "Never assume — verify before setting expectations.",
+      },
+      {
+        id: "sales-stock-check-followup-q2",
+        question: "What's a strong close on a follow-up call like this?",
+        options: ["Leave the timing vague", "Propose a specific appointment time", "Tell them to call back later", "End the call abruptly"],
+        correctIndex: 1,
+        explanation: "A specific time increases the odds they actually show up.",
+      },
+      {
+        id: "sales-stock-check-followup-q3",
+        question: "Why get a callback number?",
+        options: ["It's not necessary", "In case plans change or vehicle sells", "To spam them later", "Company policy requires it for no reason"],
+        correctIndex: 1,
+        explanation: "A callback number lets you proactively update them if something changes.",
+      },
+    ],
+    passingScore: 70,
+  },
+  {
+    id: "sales-trim-comparison",
+    role: "sales",
+    level: "seasoned",
+    title: "Trim Level Comparison",
+    situation:
+      "A caller is deciding between the base model and an upgraded trim package and wants the real differences explained.",
+    audioUrl:
+      "https://static.galaxy.ai/user_39iXjxyQdmhoj5bVhki8e1ab0c2/342fd4e7-4783-47e8-9299-2da2df85c926.mp3",
+    checklist: [
+      "Asked what features matter most to the caller before explaining differences",
+      "Clearly outlined feature/price differences between trims",
+      "Tied differences to the caller's stated needs, not just a feature list",
+      "Mentioned availability of each trim",
+      "Invited them in to compare both in person",
+    ],
+    questions: [
+      {
+        id: "sales-trim-comparison-q1",
+        question: "Before explaining trim differences, you should:",
+        options: ["Launch into a full feature list immediately", "Ask what matters most to the caller", "Recommend the most expensive one first", "Say trims don't really matter"],
+        correctIndex: 1,
+        explanation: "Tailoring the explanation to their priorities makes it relevant.",
+      },
+      {
+        id: "sales-trim-comparison-q2",
+        question: "What's most persuasive when comparing trims?",
+        options: ["A generic list of specs", "Connecting features to their specific needs", "Pressuring them into the upgrade", "Downplaying the base model entirely"],
+        correctIndex: 1,
+        explanation: "Relevance to their needs is more persuasive than a spec dump.",
+      },
+      {
+        id: "sales-trim-comparison-q3",
+        question: "What should you always confirm during this call?",
+        options: ["Nothing else is needed", "Availability of each trim", "Their exact income", "Their marital status"],
+        correctIndex: 1,
+        explanation: "There's no point comparing trims that aren't actually available.",
+      },
+    ],
+    passingScore: 75,
+  },
+  {
+    id: "sales-cpo-vs-new",
+    role: "sales",
+    level: "seasoned",
+    title: "Certified Pre-Owned vs. New",
+    situation:
+      "A caller is torn between a certified pre-owned vehicle and a brand-new one and wants the real difference explained.",
+    audioUrl:
+      "https://static.galaxy.ai/user_39iXjxyQdmhoj5bVhki8e1ab0c2/e8eefced-584e-4662-b65d-45361cf80952.mp3",
+    checklist: [
+      "Explained what 'certified pre-owned' actually includes (inspection, warranty)",
+      "Compared price and warranty coverage honestly between CPO and new",
+      "Asked about budget and priorities (newest tech vs. value)",
+      "Avoided steering them only toward the higher-margin option",
+      "Offered to show both options side by side",
+    ],
+    questions: [
+      {
+        id: "sales-cpo-vs-new-q1",
+        question: "What does 'certified pre-owned' typically include?",
+        options: ["Nothing extra vs. a regular used car", "A multi-point inspection and extended warranty coverage", "Only a new coat of paint", "A shorter warranty than new"],
+        correctIndex: 1,
+        explanation: "CPO vehicles undergo inspection and come with added warranty coverage.",
+      },
+      {
+        id: "sales-cpo-vs-new-q2",
+        question: "How should you approach this comparison?",
+        options: ["Push whichever has higher margin", "Honestly compare based on their needs and budget", "Refuse to discuss CPO options", "Only discuss price, ignore warranty"],
+        correctIndex: 1,
+        explanation: "Honest, needs-based comparison builds trust and long-term loyalty.",
+      },
+      {
+        id: "sales-cpo-vs-new-q3",
+        question: "What's a good way to help them decide?",
+        options: ["Show both options side by side", "Only describe one option", "Rush them into the more expensive choice", "Refuse to compare warranties"],
+        correctIndex: 0,
+        explanation: "Side-by-side comparison helps customers make an informed choice.",
+      },
+    ],
+    passingScore: 75,
+  },
+  {
+    id: "sales-trade-equity-downpayment",
+    role: "sales",
+    level: "seasoned",
+    title: "Trade Equity as Down Payment",
+    situation:
+      "A caller has a trade-in and some cash and isn't sure how both combine toward a down payment.",
+    audioUrl:
+      "https://static.galaxy.ai/user_39iXjxyQdmhoj5bVhki8e1ab0c2/45917722-934f-43ca-b132-b27dc4478478.mp3",
+    checklist: [
+      "Explained that trade equity plus cash can combine into the total down payment",
+      "Asked for basic trade details (year/make/model/mileage/condition)",
+      "Clarified that trade value is confirmed with an in-person appraisal, not a phone quote",
+      "Avoided giving a firm number over the phone",
+      "Invited them in for an appraisal and financing conversation",
+    ],
+    questions: [
+      {
+        id: "sales-trade-equity-downpayment-q1",
+        question: "How do trade equity and cash typically combine?",
+        options: ["They can't be combined", "Both can count toward the total down payment", "Only cash counts toward a down payment", "Trade equity replaces financing entirely"],
+        correctIndex: 1,
+        explanation: "Trade equity and cash can both contribute to the total down payment.",
+      },
+      {
+        id: "sales-trade-equity-downpayment-q2",
+        question: "Should you give a firm trade value over the phone?",
+        options: ["Yes, always quote an exact number", "No, an in-person appraisal is needed for accuracy", "Only if they insist repeatedly", "Yes, but double it"],
+        correctIndex: 1,
+        explanation: "Trade values require in-person inspection for an accurate number.",
+      },
+      {
+        id: "sales-trade-equity-downpayment-q3",
+        question: "What info should you gather on this call?",
+        options: ["Nothing, just book them in", "Basic trade details like year/make/model/mileage", "Only their phone number", "Their exact bank balance"],
+        correctIndex: 1,
+        explanation: "Basic trade details let you prepare before their visit.",
+      },
+    ],
+    passingScore: 75,
+  },
+  {
+    id: "sales-simultaneous-negotiation",
+    role: "sales",
+    level: "superstar",
+    title: "Simultaneous Price and Trade Negotiation Under Pressure",
+    situation:
+      "An aggressive caller demands a combined best price on the new vehicle and their trade-in immediately, citing competing offers, and threatens to hang up.",
+    audioUrl:
+      "https://static.galaxy.ai/user_39iXjxyQdmhoj5bVhki8e1ab0c2/5a1dfbbc-bcfa-4e3c-ade8-2d0253a56470.mp3",
+    checklist: [
+      "Stayed calm and did not match the caller's aggressive tone",
+      "Explained that an accurate combined number requires basic vehicle and trade details",
+      "Did not invent a number just to keep them on the phone",
+      "Offered to get them a real, honest figure quickly if they can come in or provide details",
+      "Kept the door open even if they threaten to hang up",
+    ],
+    questions: [
+      {
+        id: "sales-simultaneous-negotiation-q1",
+        question: "How should you respond to aggressive urgency and threats?",
+        options: ["Match their aggressive tone", "Stay calm and professional", "Hang up first", "Agree to any number they demand"],
+        correctIndex: 1,
+        explanation: "Staying calm de-escalates and keeps the conversation productive.",
+      },
+      {
+        id: "sales-simultaneous-negotiation-q2",
+        question: "Should you make up a combined number on the spot?",
+        options: ["Yes, to keep them from hanging up", "No, that risks a broken promise later", "Yes, always overestimate", "Yes, always underestimate"],
+        correctIndex: 1,
+        explanation: "Inventing numbers erodes trust when the real figures differ later.",
+      },
+      {
+        id: "sales-simultaneous-negotiation-q3",
+        question: "What's the best way to keep this caller engaged?",
+        options: ["Let them hang up without a plan", "Offer a clear next step to get a real number fast", "Refuse to discuss trade value at all", "Tell them to call a competitor"],
+        correctIndex: 1,
+        explanation: "Giving a concrete path to a real answer keeps them engaged despite pressure.",
+      },
+    ],
+    passingScore: 85,
+  },
+
+  // ---------- RECEPTION ADDITIONS ----------
+  {
+    id: "reception-buying-documents",
+    role: "reception",
+    level: "newbie",
+    title: "What Documents to Bring",
+    situation:
+      "A caller planning to buy this weekend wants to know what documents they need to bring.",
+    audioUrl:
+      "https://static.galaxy.ai/user_39iXjxyQdmhoj5bVhki8e1ab0c2/df01f9d7-0980-4082-a828-2ae783da284a.mp3",
+    checklist: [
+      "Listed standard documents (ID, proof of insurance, proof of income if financing)",
+      "Asked if they're financing or paying cash to tailor the list",
+      "Mentioned trade-in title/registration if applicable",
+      "Offered to connect them to sales for anything specific",
+      "Confirmed their appointment day/time",
+    ],
+    questions: [
+      {
+        id: "reception-buying-documents-q1",
+        question: "What's a standard document most buyers need?",
+        options: ["Passport only", "A valid ID", "Their high school diploma", "Nothing at all"],
+        correctIndex: 1,
+        explanation: "A valid ID is a standard requirement for any purchase.",
+      },
+      {
+        id: "reception-buying-documents-q2",
+        question: "Why ask if they're financing or paying cash?",
+        options: ["It doesn't matter", "It changes which documents are needed", "To be nosy", "To delay the call"],
+        correctIndex: 1,
+        explanation: "Financing usually requires proof of income, which cash purchases don't.",
+      },
+      {
+        id: "reception-buying-documents-q3",
+        question: "If they have a trade-in, what should you mention?",
+        options: ["Nothing extra", "Bringing the title/registration for the trade", "They can't trade in", "They need a lawyer present"],
+        correctIndex: 1,
+        explanation: "Trade-ins require proof of ownership documents.",
+      },
+    ],
+    passingScore: 70,
+  },
+  {
+    id: "reception-appointment-confirmation",
+    role: "reception",
+    level: "newbie",
+    title: "Appointment Confirmation",
+    situation:
+      "A caller wants to confirm their appointment for tomorrow is still on the schedule.",
+    audioUrl:
+      "https://static.galaxy.ai/user_39iXjxyQdmhoj5bVhki8e1ab0c2/b84105d7-1014-4a0c-9dad-84e721432959.mp3",
+    checklist: [
+      "Looked up the appointment in the system before answering",
+      "Confirmed date, time, and who they're meeting with",
+      "Asked if anything changed on their end",
+      "Offered directions or parking info if needed",
+      "Thanked them for confirming",
+    ],
+    questions: [
+      {
+        id: "reception-appointment-confirmation-q1",
+        question: "Before confirming, you should:",
+        options: ["Guess it's fine", "Actually look up the appointment", "Tell them to call back later", "Assume it's cancelled"],
+        correctIndex: 1,
+        explanation: "Always verify in the system rather than guessing.",
+      },
+      {
+        id: "reception-appointment-confirmation-q2",
+        question: "What details should you confirm together?",
+        options: ["Nothing specific", "Date, time, and who they're meeting with", "Only the date", "Only their name"],
+        correctIndex: 1,
+        explanation: "Full details prevent confusion or missed appointments.",
+      },
+      {
+        id: "reception-appointment-confirmation-q3",
+        question: "What's a helpful add-on to offer?",
+        options: ["Nothing else needed", "Directions or parking info", "A sales pitch for something else", "Unrelated promotions"],
+        correctIndex: 1,
+        explanation: "Practical logistics help ensure a smooth visit.",
+      },
+    ],
+    passingScore: 70,
+  },
+  {
+    id: "reception-service-drop-off-directions",
+    role: "reception",
+    level: "newbie",
+    title: "Service Drop-Off Directions",
+    situation:
+      "A caller has a service appointment tomorrow morning and wants to know exactly where to go and about parking.",
+    audioUrl:
+      "https://static.galaxy.ai/user_39iXjxyQdmhoj5bVhki8e1ab0c2/9a980770-1130-4aad-a5f5-b39f69607152.mp3",
+    checklist: [
+      "Gave clear directions to the service drive/entrance",
+      "Mentioned parking availability or where to leave the vehicle",
+      "Confirmed their appointment time and advisor if known",
+      "Asked if they need a shuttle or loaner information",
+      "Offered a callback number for the service department",
+    ],
+    questions: [
+      {
+        id: "reception-service-drop-off-directions-q1",
+        question: "What should you give clearly on this call?",
+        options: ["Vague directions", "Clear directions to the service entrance", "No directions, just tell them to figure it out", "Directions to a different dealership"],
+        correctIndex: 1,
+        explanation: "Clear directions reduce confusion and late arrivals.",
+      },
+      {
+        id: "reception-service-drop-off-directions-q2",
+        question: "What's a good proactive question to ask?",
+        options: ["Nothing further", "Whether they need a shuttle or loaner", "Their favorite color", "Their exact income"],
+        correctIndex: 1,
+        explanation: "Proactively addressing shuttle/loaner needs improves their experience.",
+      },
+      {
+        id: "reception-service-drop-off-directions-q3",
+        question: "What should you provide before ending the call?",
+        options: ["A callback number for service", "Nothing else", "A sales pitch", "An unrelated survey"],
+        correctIndex: 0,
+        explanation: "A direct number helps if their plans change.",
+      },
+    ],
+    passingScore: 70,
+  },
+  {
+    id: "reception-location-confusion",
+    role: "reception",
+    level: "seasoned",
+    title: "Multi-Location Confusion",
+    situation:
+      "A caller isn't sure if they've reached the correct dealership location and wants clarification.",
+    audioUrl:
+      "https://static.galaxy.ai/user_39iXjxyQdmhoj5bVhki8e1ab0c2/f6ce3d8c-b46e-4d0a-8fad-ed09a688ee51.mp3",
+    checklist: [
+      "Clearly stated which location they've reached",
+      "Asked what they were trying to accomplish to confirm the right location",
+      "Offered the correct number/address if they need a different location",
+      "Avoided making them feel silly for asking",
+      "Offered to transfer them directly if needed",
+    ],
+    questions: [
+      {
+        id: "reception-location-confusion-q1",
+        question: "First step when a caller seems unsure of the location?",
+        options: ["Assume they're right", "Clearly state which location they've reached", "Hang up", "Ignore the question"],
+        correctIndex: 1,
+        explanation: "Clarity upfront resolves confusion quickly.",
+      },
+      {
+        id: "reception-location-confusion-q2",
+        question: "If they need a different location, you should:",
+        options: ["Refuse to help further", "Provide the correct contact info", "Tell them to search online", "Transfer them randomly"],
+        correctIndex: 1,
+        explanation: "Providing accurate info for the correct location is the most helpful path.",
+      },
+      {
+        id: "reception-location-confusion-q3",
+        question: "How should you handle their confusion?",
+        options: ["Make them feel silly for asking", "Patiently and without judgment", "Rush them off the phone", "Ignore and change topic"],
+        correctIndex: 1,
+        explanation: "A patient tone keeps the caller comfortable and willing to continue.",
+      },
+    ],
+    passingScore: 75,
+  },
+  {
+    id: "reception-vague-department-request",
+    role: "reception",
+    level: "seasoned",
+    title: "Vague Department Request",
+    situation:
+      "A caller says they're calling about a job, not a car, and isn't sure if they reached the right department.",
+    audioUrl:
+      "https://static.galaxy.ai/user_39iXjxyQdmhoj5bVhki8e1ab0c2/15030716-0382-4cba-ba31-5ad91f50f8cb.mp3",
+    checklist: [
+      "Clarified that this is a dealership sales/service line, not HR directly",
+      "Asked what position or department they're inquiring about",
+      "Provided the correct HR contact or offered to transfer/take a message",
+      "Stayed polite even though it's an unusual call",
+      "Confirmed they have what they need before ending the call",
+    ],
+    questions: [
+      {
+        id: "reception-vague-department-request-q1",
+        question: "How should you handle an off-topic call like this?",
+        options: ["Hang up immediately", "Politely clarify and redirect appropriately", "Ignore their question", "Argue with the caller"],
+        correctIndex: 1,
+        explanation: "Politely clarifying keeps the interaction professional even off-topic.",
+      },
+      {
+        id: "reception-vague-department-request-q2",
+        question: "What's the right next step?",
+        options: ["Nothing, just say goodbye", "Provide HR contact info or take a message", "Pretend you can't help at all", "Transfer to sales instead"],
+        correctIndex: 1,
+        explanation: "Directing them properly ensures their need is actually met.",
+      },
+      {
+        id: "reception-vague-department-request-q3",
+        question: "What tone should you maintain?",
+        options: ["Dismissive", "Polite and helpful", "Annoyed", "Confused"],
+        correctIndex: 1,
+        explanation: "Every caller deserves a polite, helpful tone regardless of the reason for calling.",
+      },
+    ],
+    passingScore: 75,
+  },
+  {
+    id: "reception-communication-barrier",
+    role: "reception",
+    level: "seasoned",
+    title: "Language/Communication Barrier",
+    situation:
+      "A caller with limited English is trying to schedule a car repair and is struggling to communicate clearly.",
+    audioUrl:
+      "https://static.galaxy.ai/user_39iXjxyQdmhoj5bVhki8e1ab0c2/07f7e672-c6ba-46d3-a56a-92890d5c0a38.mp3",
+    checklist: [
+      "Slowed down and spoke clearly without being condescending",
+      "Used simple words and short sentences",
+      "Confirmed key details by repeating them back (date, service needed)",
+      "Offered to text/email confirmation for clarity",
+      "Remained patient throughout",
+    ],
+    questions: [
+      {
+        id: "reception-communication-barrier-q1",
+        question: "Best approach when there's a language barrier?",
+        options: ["Speak faster and louder", "Speak slowly and use simple words", "Hang up and ask them to call back", "Ignore the difficulty"],
+        correctIndex: 1,
+        explanation: "Slowing down and simplifying language improves mutual understanding.",
+      },
+      {
+        id: "reception-communication-barrier-q2",
+        question: "How can you confirm details clearly?",
+        options: ["Assume you understood correctly", "Repeat key details back to confirm", "Skip confirming anything", "Guess at what they need"],
+        correctIndex: 1,
+        explanation: "Repeating back details verifies mutual understanding.",
+      },
+      {
+        id: "reception-communication-barrier-q3",
+        question: "What's a helpful follow-up for clarity?",
+        options: ["Nothing further needed", "Offering a text/email confirmation", "Refusing to send anything in writing", "Ending the call immediately"],
+        correctIndex: 1,
+        explanation: "Written confirmation helps overcome verbal communication gaps.",
+      },
+    ],
+    passingScore: 75,
+  },
+  {
+    id: "reception-legal-threat",
+    role: "reception",
+    level: "superstar",
+    title: "Billing Dispute with Legal Threat",
+    situation:
+      "An angry caller claims they've been billed incorrectly twice, demands it be fixed today, and threatens to call their lawyer.",
+    audioUrl:
+      "https://static.galaxy.ai/user_39iXjxyQdmhoj5bVhki8e1ab0c2/50231f0d-b45a-4003-afdc-cc8c882840a4.mp3",
+    checklist: [
+      "Stayed calm and did not get defensive despite the legal threat",
+      "Acknowledged the frustration genuinely without admitting fault verbally",
+      "Did not promise a specific resolution outcome without proper authority",
+      "Immediately escalated to a manager or the appropriate billing contact",
+      "Took down detailed notes (name, issue, callback number) before transferring",
+    ],
+    questions: [
+      {
+        id: "reception-legal-threat-q1",
+        question: "How should you respond to a legal threat on the phone?",
+        options: ["Argue back defensively", "Stay calm and acknowledge their frustration", "Hang up immediately", "Promise a lawsuit won't happen"],
+        correctIndex: 1,
+        explanation: "Staying calm and empathetic is critical in escalated situations.",
+      },
+      {
+        id: "reception-legal-threat-q2",
+        question: "Should you promise a specific billing resolution yourself?",
+        options: ["Yes, promise anything to calm them down", "No, escalate to someone with proper authority", "Yes, and guarantee a refund", "No, refuse to discuss it at all"],
+        correctIndex: 1,
+        explanation: "Only someone with proper authority should commit to a resolution.",
+      },
+      {
+        id: "reception-legal-threat-q3",
+        question: "What should you do before transferring the call?",
+        options: ["Nothing, just transfer blindly", "Take detailed notes to hand off context", "Hang up on them", "Argue about the legal threat"],
+        correctIndex: 1,
+        explanation: "Detailed notes ensure the next person can help without the caller repeating everything.",
+      },
+    ],
+    passingScore: 85,
+  },
+
+  // ---------- SERVICE ADDITIONS ----------
+  {
+    id: "service-tire-rotation-scheduling",
+    role: "service",
+    level: "newbie",
+    title: "Tire Rotation Scheduling",
+    situation:
+      "A caller wants a simple tire rotation scheduled and asks for availability this week.",
+    audioUrl:
+      "https://static.galaxy.ai/user_39iXjxyQdmhoj5bVhki8e1ab0c2/336f2959-2c26-4fd7-8454-32c5a29c00f7.mp3",
+    checklist: [
+      "Checked availability for the requested week",
+      "Confirmed the vehicle make/model and mileage if relevant",
+      "Offered the earliest convenient slot",
+      "Mentioned approximate time the service will take",
+      "Confirmed contact info for reminders",
+    ],
+    questions: [
+      {
+        id: "service-tire-rotation-scheduling-q1",
+        question: "What should you check first for this request?",
+        options: ["Nothing, just book any day", "Actual availability for their preferred week", "Their favorite tire brand", "Their exact address"],
+        correctIndex: 1,
+        explanation: "Always verify real availability before booking.",
+      },
+      {
+        id: "service-tire-rotation-scheduling-q2",
+        question: "What's helpful to mention about time?",
+        options: ["Nothing about duration", "Approximate time the service will take", "A random unrelated fact", "Their invoice history"],
+        correctIndex: 1,
+        explanation: "Setting expectations on duration helps them plan their day.",
+      },
+      {
+        id: "service-tire-rotation-scheduling-q3",
+        question: "What should you confirm before ending the call?",
+        options: ["Nothing else", "Contact info for reminders", "Their political views", "Their vehicle's paint color"],
+        correctIndex: 1,
+        explanation: "Contact confirmation ensures reminders reach them.",
+      },
+    ],
+    passingScore: 70,
+  },
+  {
+    id: "service-warranty-basics",
+    role: "service",
+    level: "newbie",
+    title: "Basic Warranty Coverage Question",
+    situation:
+      "A caller with a newer vehicle wants to understand what's covered under warranty if something goes wrong.",
+    audioUrl:
+      "https://static.galaxy.ai/user_39iXjxyQdmhoj5bVhki8e1ab0c2/64ac1d3c-8fd5-46c4-a8e1-64e14adf3525.mp3",
+    checklist: [
+      "Asked for the vehicle's age/mileage to check warranty status",
+      "Explained general categories typically covered (powertrain, bumper-to-bumper basics)",
+      "Clarified that exact coverage should be verified against their specific contract",
+      "Avoided guaranteeing coverage without checking",
+      "Offered to have a specific issue reviewed if they have one",
+    ],
+    questions: [
+      {
+        id: "service-warranty-basics-q1",
+        question: "What should you check before answering coverage questions?",
+        options: ["Nothing, just guess", "The vehicle's age/mileage relative to warranty terms", "Their favorite color", "Their driving habits"],
+        correctIndex: 1,
+        explanation: "Warranty coverage depends on age/mileage thresholds.",
+      },
+      {
+        id: "service-warranty-basics-q2",
+        question: "Should you guarantee coverage without verifying?",
+        options: ["Yes, always guarantee it", "No, verify against their specific contract first", "Yes, guarantee only for luxury brands", "No, refuse to discuss warranty at all"],
+        correctIndex: 1,
+        explanation: "Coverage should be confirmed against the actual contract, not assumed.",
+      },
+      {
+        id: "service-warranty-basics-q3",
+        question: "What's a good next step if they have a specific issue?",
+        options: ["Dismiss it", "Offer to have it reviewed", "Tell them it's definitely not covered", "Refuse further discussion"],
+        correctIndex: 1,
+        explanation: "Offering a review moves them toward a concrete answer.",
+      },
+    ],
+    passingScore: 70,
+  },
+  {
+    id: "service-phone-estimate",
+    role: "service",
+    level: "newbie",
+    title: "Phone Estimate Request",
+    situation:
+      "A caller wants a ballpark cost for brake pad replacement before bringing the car in.",
+    audioUrl:
+      "https://static.galaxy.ai/user_39iXjxyQdmhoj5bVhki8e1ab0c2/47173da3-0f21-453b-abfb-a974f71354d5.mp3",
+    checklist: [
+      "Gave a reasonable ballpark range while noting it's an estimate",
+      "Explained that final pricing depends on inspection findings",
+      "Asked about vehicle make/model for a more accurate range",
+      "Avoided quoting a firm guaranteed price over the phone",
+      "Offered to schedule an inspection for an exact quote",
+    ],
+    questions: [
+      {
+        id: "service-phone-estimate-q1",
+        question: "How should phone estimates be framed?",
+        options: ["As a guaranteed final price", "As a ballpark pending inspection", "Refuse to give any number", "Always the highest possible price"],
+        correctIndex: 1,
+        explanation: "Phone estimates are ballparks; final pricing depends on inspection.",
+      },
+      {
+        id: "service-phone-estimate-q2",
+        question: "What info helps give a better estimate?",
+        options: ["Nothing needed", "Vehicle make/model", "Their zodiac sign", "Their address"],
+        correctIndex: 1,
+        explanation: "Make/model affects part costs and labor time.",
+      },
+      {
+        id: "service-phone-estimate-q3",
+        question: "What's the best next step to get an exact number?",
+        options: ["Nothing further", "Schedule an inspection", "Guess higher and hope it's close", "Refuse repairs entirely"],
+        correctIndex: 1,
+        explanation: "An inspection gives the accurate, final pricing they need.",
+      },
+    ],
+    passingScore: 70,
+  },
+  {
+    id: "service-inspection-followup",
+    role: "service",
+    level: "seasoned",
+    title: "Inspection Findings Follow-Up",
+    situation:
+      "A caller wants a clear explanation of what was found during a recent vehicle inspection.",
+    audioUrl:
+      "https://static.galaxy.ai/user_39iXjxyQdmhoj5bVhki8e1ab0c2/34c96388-565d-4383-94b8-7f9b00a5adbe.mp3",
+    checklist: [
+      "Pulled up the specific inspection report before explaining",
+      "Explained findings in plain language, not just technical jargon",
+      "Prioritized findings by urgency (safety vs. routine maintenance)",
+      "Answered questions about cost and timing for recommended repairs",
+      "Avoided pressuring them into immediate approval",
+    ],
+    questions: [
+      {
+        id: "service-inspection-followup-q1",
+        question: "Before explaining findings, you should:",
+        options: ["Guess from memory", "Pull up the actual inspection report", "Make something up", "Refuse to discuss it"],
+        correctIndex: 1,
+        explanation: "Always reference the actual documented findings.",
+      },
+      {
+        id: "service-inspection-followup-q2",
+        question: "How should findings be prioritized when explaining?",
+        options: ["Randomly", "By urgency, safety issues first", "Cheapest items first regardless of urgency", "Alphabetically"],
+        correctIndex: 1,
+        explanation: "Safety-critical issues should be communicated with appropriate priority.",
+      },
+      {
+        id: "service-inspection-followup-q3",
+        question: "Should you pressure immediate approval of all repairs?",
+        options: ["Yes, always push for full approval now", "No, let them make an informed decision", "Yes, threaten with safety risk exaggeration", "No, refuse to discuss any repairs"],
+        correctIndex: 1,
+        explanation: "Informing rather than pressuring builds trust and long-term loyalty.",
+      },
+    ],
+    passingScore: 75,
+  },
+  {
+    id: "service-second-opinion",
+    role: "service",
+    level: "seasoned",
+    title: "Explaining a Repair Quote",
+    situation:
+      "A caller received a repair quote and wants a clear explanation of why it costs what it does before approving.",
+    audioUrl:
+      "https://static.galaxy.ai/user_39iXjxyQdmhoj5bVhki8e1ab0c2/84e7037f-9b21-4cc6-bf88-9e01c4d81c3c.mp3",
+    checklist: [
+      "Broke down the quote into parts and labor clearly",
+      "Explained why specific parts/labor are needed for this repair",
+      "Answered questions patiently without getting defensive",
+      "Mentioned any warranty coverage on parts/labor if applicable",
+      "Did not pressure them to approve on the spot",
+    ],
+    questions: [
+      {
+        id: "service-second-opinion-q1",
+        question: "How should a quote be explained to a skeptical caller?",
+        options: ["Refuse to break it down", "Clearly separate parts and labor costs", "Get defensive about the price", "Rush through it quickly"],
+        correctIndex: 1,
+        explanation: "A clear breakdown builds understanding and trust.",
+      },
+      {
+        id: "service-second-opinion-q2",
+        question: "What should you mention if applicable?",
+        options: ["Nothing about warranty", "Any warranty coverage on parts/labor", "Unrelated dealership promotions", "Their previous unrelated visits"],
+        correctIndex: 1,
+        explanation: "Warranty coverage can materially change the customer's out-of-pocket cost.",
+      },
+      {
+        id: "service-second-opinion-q3",
+        question: "How should you handle pushback on price?",
+        options: ["Get defensive", "Answer patiently without defensiveness", "Hang up", "Pressure immediate approval"],
+        correctIndex: 1,
+        explanation: "Patient, non-defensive answers keep the conversation productive.",
+      },
+    ],
+    passingScore: 75,
+  },
+  {
+    id: "service-parts-backorder-reschedule",
+    role: "service",
+    level: "seasoned",
+    title: "Parts Backorder Reschedule",
+    situation:
+      "A caller learns a part for their repair is on backorder and wants to know what that means for their appointment.",
+    audioUrl:
+      "https://static.galaxy.ai/user_39iXjxyQdmhoj5bVhki8e1ab0c2/9e07aae1-be94-4ea5-b49a-495f0902d3f8.mp3",
+    checklist: [
+      "Clearly explained what backorder means and the impact on timing",
+      "Gave an honest estimated timeframe if known, or explained it's uncertain",
+      "Offered to reschedule the appointment or proceed with other work first",
+      "Offered to call them proactively once the part arrives",
+      "Apologized for the inconvenience without overpromising",
+    ],
+    questions: [
+      {
+        id: "service-parts-backorder-reschedule-q1",
+        question: "What should you clearly explain first?",
+        options: ["Nothing, just reschedule silently", "What backorder means and its impact on timing", "Unrelated dealership news", "Their invoice history"],
+        correctIndex: 1,
+        explanation: "Clear explanation avoids confusion and frustration.",
+      },
+      {
+        id: "service-parts-backorder-reschedule-q2",
+        question: "Should you overpromise a delivery date if uncertain?",
+        options: ["Yes, always give a firm date", "No, be honest about uncertainty", "Yes, guess optimistically", "No, refuse to give any timeframe"],
+        correctIndex: 1,
+        explanation: "Overpromising erodes trust if the date isn't met.",
+      },
+      {
+        id: "service-parts-backorder-reschedule-q3",
+        question: "What's a good proactive offer here?",
+        options: ["Nothing further", "Calling them once the part arrives", "Ignoring the appointment entirely", "Charging a rescheduling fee"],
+        correctIndex: 1,
+        explanation: "Proactive follow-up reduces frustration and repeat calls.",
+      },
+    ],
+    passingScore: 75,
+  },
+  {
+    id: "service-repeat-failure-refund-demand",
+    role: "service",
+    level: "superstar",
+    title: "Repeat Repair Failure and Refund Demand",
+    situation:
+      "An angry caller says this is the third time the same problem has supposedly been fixed and it's broken again, demanding a full refund or threatening manufacturer reports and negative reviews.",
+    audioUrl:
+      "https://static.galaxy.ai/user_39iXjxyQdmhoj5bVhki8e1ab0c2/a4fad470-b865-47fc-b39b-8a20dcdafc49.mp3",
+    checklist: [
+      "Stayed calm and did not get defensive about the repeat failures",
+      "Genuinely acknowledged the frustration and repeated inconvenience",
+      "Did not promise a refund without proper manager/authority approval",
+      "Immediately escalated to a service manager given the repeat-failure severity",
+      "Documented the full repair history and current complaint before transferring",
+    ],
+    questions: [
+      {
+        id: "service-repeat-failure-refund-demand-q1",
+        question: "How should you respond to repeated failure complaints and threats?",
+        options: ["Get defensive about prior repairs", "Stay calm and genuinely acknowledge their frustration", "Hang up on the caller", "Promise nothing can be done"],
+        correctIndex: 1,
+        explanation: "Calm acknowledgment de-escalates and shows you take it seriously.",
+      },
+      {
+        id: "service-repeat-failure-refund-demand-q2",
+        question: "Should you promise a refund yourself?",
+        options: ["Yes, promise it immediately", "No, escalate to someone with proper authority", "Yes, but only half a refund", "No, refuse to discuss it further"],
+        correctIndex: 1,
+        explanation: "Refund decisions typically require manager-level authority.",
+      },
+      {
+        id: "service-repeat-failure-refund-demand-q3",
+        question: "What should happen before escalating this call?",
+        options: ["Nothing, just transfer blindly", "Document the full repair history and complaint", "Argue about the manufacturer threat", "Dismiss the review threat"],
+        correctIndex: 1,
+        explanation: "Documentation ensures the manager has full context to resolve it properly.",
+      },
+    ],
+    passingScore: 85,
+  },
 ];
 
 export function getScenariosByRole(role: string): Scenario[] {
