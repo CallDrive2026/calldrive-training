@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo, useCallback } from "react";
 import Link from "next/link";
-import { Attempt } from "@/types";
+import { Attempt, PilotLead } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -14,7 +14,16 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Users, CheckCircle, TrendingUp, RefreshCw, ShieldCheck } from "lucide-react";
+import {
+  Users,
+  CheckCircle,
+  TrendingUp,
+  RefreshCw,
+  ShieldCheck,
+  ChevronDown,
+  ChevronUp,
+  Mail,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmployeeManager } from "@/components/employee-manager";
 import { isManager } from "@/lib/auth";
@@ -22,7 +31,9 @@ import { isManager } from "@/lib/auth";
 export function DashboardClient() {
   const [manager, setManagerState] = useState<boolean | null>(null);
   const [attempts, setAttempts] = useState<Attempt[]>([]);
+  const [leads, setLeads] = useState<PilotLead[]>([]);
   const [loading, setLoading] = useState(true);
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     setManagerState(isManager());
@@ -31,9 +42,15 @@ export function DashboardClient() {
   const fetchAttempts = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/attempts");
-      const data = await res.json();
-      setAttempts(data);
+      const [attemptsRes, leadsRes] = await Promise.all([
+        fetch("/api/attempts"),
+        fetch("/api/pilot-leads"),
+      ]);
+      const attemptsData = await attemptsRes.json();
+      setAttempts(attemptsData);
+      if (leadsRes.ok) {
+        setLeads(await leadsRes.json());
+      }
     } finally {
       setLoading(false);
     }
@@ -42,6 +59,15 @@ export function DashboardClient() {
   useEffect(() => {
     if (manager) fetchAttempts();
   }, [manager, fetchAttempts]);
+
+  const toggleExpanded = (id: string) => {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   const stats = useMemo(() => {
     const total = attempts.length;
@@ -202,20 +228,118 @@ export function DashboardClient() {
                   <TableHead>Role</TableHead>
                   <TableHead>Score</TableHead>
                   <TableHead>Result</TableHead>
+                  <TableHead></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {attempts.slice(0, 15).map((a) => (
-                  <TableRow key={a.id}>
-                    <TableCell className="font-medium">{a.employeeName}</TableCell>
-                    <TableCell>{a.scenarioTitle}</TableCell>
-                    <TableCell className="capitalize">{a.role}</TableCell>
-                    <TableCell>{a.score}%</TableCell>
-                    <TableCell>
-                      <Badge variant={a.passed ? "default" : "destructive"}>
-                        {a.passed ? "Passed" : "Failed"}
-                      </Badge>
-                    </TableCell>
+                {attempts.slice(0, 25).map((a) => {
+                  const isOpen = expanded.has(a.id);
+                  const hasDetail = a.mode === "call";
+                  return (
+                    <>
+                      <TableRow key={a.id}>
+                        <TableCell className="font-medium">{a.employeeName}</TableCell>
+                        <TableCell>{a.scenarioTitle}</TableCell>
+                        <TableCell className="capitalize">{a.role}</TableCell>
+                        <TableCell>{a.score}%</TableCell>
+                        <TableCell>
+                          <Badge variant={a.passed ? "default" : "destructive"}>
+                            {a.passed ? "Passed" : "Failed"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {hasDetail && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => toggleExpanded(a.id)}
+                            >
+                              {isOpen ? (
+                                <ChevronUp className="h-4 w-4" />
+                              ) : (
+                                <ChevronDown className="h-4 w-4" />
+                              )}
+                            </Button>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                      {hasDetail && isOpen && (
+                        <TableRow key={`${a.id}-detail`}>
+                          <TableCell colSpan={6} className="bg-neutral-50">
+                            <div className="space-y-3 py-2 text-sm">
+                              {a.categoryScores && a.categoryScores.length > 0 && (
+                                <div>
+                                  <p className="font-medium mb-1">Score breakdown</p>
+                                  <ul className="space-y-1 text-neutral-600">
+                                    {a.categoryScores.map((c, i) => (
+                                      <li key={i}>
+                                        {c.name}: {c.score}/100 — {c.note}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                              {a.coachingNotes && (
+                                <div>
+                                  <p className="font-medium mb-1">Coaching notes</p>
+                                  <p className="text-neutral-600">{a.coachingNotes}</p>
+                                </div>
+                              )}
+                              {a.wordTrack && (
+                                <div>
+                                  <p className="font-medium mb-1">Suggested word track</p>
+                                  <p className="text-neutral-600 italic">
+                                    &ldquo;{a.wordTrack}&rdquo;
+                                  </p>
+                                </div>
+                              )}
+                              {a.transcript && (
+                                <div>
+                                  <p className="font-medium mb-1">Employee said</p>
+                                  <p className="text-neutral-500">{a.transcript}</p>
+                                </div>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Mail className="h-4 w-4 text-[#152645]" /> Pilot Program Leads
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {leads.length === 0 ? (
+            <p className="text-sm text-neutral-500 py-8 text-center">
+              No pilot applications yet.
+            </p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Work Email</TableHead>
+                  <TableHead>Goal</TableHead>
+                  <TableHead>Submitted</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {leads.map((l) => (
+                  <TableRow key={l.id}>
+                    <TableCell className="font-medium">{l.name}</TableCell>
+                    <TableCell>{l.workEmail}</TableCell>
+                    <TableCell className="max-w-xs truncate">{l.goal}</TableCell>
+                    <TableCell>{new Date(l.createdAt).toLocaleDateString()}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

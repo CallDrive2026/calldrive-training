@@ -21,6 +21,8 @@ export async function ensureSchema() {
   if (migrated) return;
   const pool = getPool();
   await pool.query(`
+    CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
     CREATE TABLE IF NOT EXISTS employees (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       name TEXT NOT NULL UNIQUE,
@@ -41,13 +43,25 @@ export async function ensureSchema() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT now()
     );
 
+    ALTER TABLE attempts ADD COLUMN IF NOT EXISTS transcript TEXT;
+    ALTER TABLE attempts ADD COLUMN IF NOT EXISTS category_scores JSONB;
+    ALTER TABLE attempts ADD COLUMN IF NOT EXISTS coaching_notes TEXT;
+    ALTER TABLE attempts ADD COLUMN IF NOT EXISTS word_track TEXT;
+    ALTER TABLE attempts ADD COLUMN IF NOT EXISTS mode TEXT NOT NULL DEFAULT 'quiz';
+
     CREATE TABLE IF NOT EXISTS manager_settings (
       id INTEGER PRIMARY KEY DEFAULT 1,
       code TEXT NOT NULL,
       CONSTRAINT single_row CHECK (id = 1)
     );
 
-    CREATE EXTENSION IF NOT EXISTS pgcrypto;
+    CREATE TABLE IF NOT EXISTS pilot_leads (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      name TEXT NOT NULL,
+      work_email TEXT NOT NULL,
+      goal TEXT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
   `);
   migrated = true;
 }

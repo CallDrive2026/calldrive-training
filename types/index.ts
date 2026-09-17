@@ -21,6 +21,12 @@ export interface Scenario {
   passingScore: number; // percentage
 }
 
+export interface CategoryScore {
+  name: string;
+  score: number; // 0-100
+  note: string;
+}
+
 export interface Attempt {
   id: string;
   employeeName: string;
@@ -31,6 +37,11 @@ export interface Attempt {
   score: number;
   passed: boolean;
   createdAt: string;
+  mode: "quiz" | "call";
+  transcript?: string | null;
+  categoryScores?: CategoryScore[] | null;
+  coachingNotes?: string | null;
+  wordTrack?: string | null;
 }
 
 export interface RoleInfo {
@@ -43,4 +54,12 @@ export interface LevelInfo {
   id: Level;
   label: string;
   description: string;
+}
+
+export interface PilotLead {
+  id: string;
+  name: string;
+  workEmail: string;
+  goal: string | null;
+  createdAt: string;
 }

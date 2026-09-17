@@ -9,16 +9,33 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Certificate } from "@/components/certificate";
+import { CallRecorder } from "@/components/call-recorder";
 import { markPassed } from "@/lib/progress";
 import { getEmployee, LoggedInEmployee } from "@/lib/auth";
-import { CheckCircle, XCircle, Phone, Loader2, User } from "lucide-react";
+import { CheckCircle, XCircle, Phone, User, Copy, Check } from "lucide-react";
 
 interface Props {
   scenario: Scenario;
   roleLabel: string;
 }
 
-type Step = "intro" | "quiz" | "result";
+type Step = "intro" | "record" | "result" | "error";
+
+interface CategoryScore {
+  name: string;
+  score: number;
+  note: string;
+}
+
+interface ScoreResult {
+  score: number;
+  passed: boolean;
+  passingScore: number;
+  transcript: string | null;
+  categoryScores: CategoryScore[] | null;
+  coachingNotes: string | null;
+  wordTrack: string | null;
+}
 
 export function ScenarioPractice({ scenario, roleLabel }: Props) {
   const router = useRouter();
@@ -27,16 +44,14 @@ export function ScenarioPractice({ scenario, roleLabel }: Props) {
   const [checklist, setChecklist] = useState<boolean[]>(
     new Array(scenario.checklist.length).fill(false)
   );
-  const [answers, setAnswers] = useState<(number | null)[]>(
-    new Array(scenario.questions.length).fill(null)
-  );
   const [submitting, setSubmitting] = useState(false);
-  const [score, setScore] = useState<number | null>(null);
+  const [result, setResult] = useState<ScoreResult | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const emp = getEmployee();
     if (!emp) {
-      setEmployeeState(null);
       router.replace(`/login?next=/train/${scenario.role}/${scenario.id}`);
       return;
     }
@@ -49,48 +64,57 @@ export function ScenarioPractice({ scenario, roleLabel }: Props) {
     setChecklist(next);
   };
 
-  const setAnswer = (qIndex: number, optIndex: number) => {
-    const next = [...answers];
-    next[qIndex] = optIndex;
-    setAnswers(next);
+  const submitRecording = useCallback(
+    async (audioBase64: string, mimeType: string) => {
+      setSubmitting(true);
+      setErrorMsg(null);
+      try {
+        const res = await fetch("/api/attempts/score-call", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            scenarioId: scenario.id,
+            audioBase64,
+            mimeType,
+            employeeName: employee?.name || "Anonymous",
+            location: employee?.location || "Unspecified",
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          setErrorMsg(data.error || "Something went wrong scoring your call.");
+          setStep("error");
+          return;
+        }
+        if (data.passed) {
+          markPassed(scenario.id);
+        }
+        setResult({
+          score: data.score,
+          passed: data.passed,
+          passingScore: data.passingScore,
+          transcript: data.transcript,
+          categoryScores: data.categoryScores,
+          coachingNotes: data.coachingNotes,
+          wordTrack: data.wordTrack,
+        });
+        setStep("result");
+      } catch {
+        setErrorMsg("Network error while scoring your call. Please try again.");
+        setStep("error");
+      } finally {
+        setSubmitting(false);
+      }
+    },
+    [scenario, employee]
+  );
+
+  const copyWordTrack = () => {
+    if (!result?.wordTrack) return;
+    navigator.clipboard.writeText(result.wordTrack);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
-
-  const canSubmitQuiz = answers.every((a) => a !== null);
-
-  const submitQuiz = useCallback(async () => {
-    setSubmitting(true);
-    const correct = scenario.questions.filter(
-      (q, i) => answers[i] === q.correctIndex
-    ).length;
-    const pct = Math.round((correct / scenario.questions.length) * 100);
-    const passed = pct >= scenario.passingScore;
-    setScore(pct);
-
-    if (passed) {
-      markPassed(scenario.id);
-    }
-
-    try {
-      await fetch("/api/attempts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          employeeName: employee?.name || "Anonymous",
-          location: employee?.location || "Unspecified",
-          role: scenario.role,
-          scenarioId: scenario.id,
-          scenarioTitle: scenario.title,
-          score: pct,
-          passed,
-        }),
-      });
-    } catch {
-      // non-blocking — local result still shows
-    }
-
-    setSubmitting(false);
-    setStep("result");
-  }, [answers, employee, scenario]);
 
   if (employee === undefined) {
     return <p className="text-sm text-neutral-500 py-12 text-center">Loading...</p>;
@@ -142,58 +166,66 @@ export function ScenarioPractice({ scenario, roleLabel }: Props) {
           </CardContent>
         </Card>
 
-        <Button onClick={() => setStep("quiz")} className="w-full bg-[#152645] hover:bg-[#152645]/90" size="lg">
-          Continue to the test
-        </Button>
-      </div>
-    );
-  }
-
-  if (step === "quiz") {
-    return (
-      <div className="space-y-6">
-        <h1 className="text-2xl font-bold">{scenario.title} — Test</h1>
-        {scenario.questions.map((q, qi) => (
-          <Card key={q.id}>
-            <CardHeader>
-              <CardTitle className="text-base">
-                {qi + 1}. {q.question}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {q.options.map((opt, oi) => (
-                <label
-                  key={oi}
-                  className="flex items-center gap-3 text-sm rounded-md border p-3 cursor-pointer hover:bg-neutral-50 data-[checked=true]:border-[#152645] data-[checked=true]:bg-[#152645]/5"
-                  data-checked={answers[qi] === oi}
-                >
-                  <input
-                    type="radio"
-                    name={q.id}
-                    checked={answers[qi] === oi}
-                    onChange={() => setAnswer(qi, oi)}
-                    className="accent-[#152645]"
-                  />
-                  {opt}
-                </label>
-              ))}
-            </CardContent>
-          </Card>
-        ))}
         <Button
-          onClick={submitQuiz}
-          disabled={!canSubmitQuiz || submitting}
+          onClick={() => setStep("record")}
           className="w-full bg-[#152645] hover:bg-[#152645]/90"
           size="lg"
         >
-          {submitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-          Submit Test
+          Practice your response
         </Button>
       </div>
     );
   }
 
-  const passed = (score ?? 0) >= scenario.passingScore;
+  if (step === "record") {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold">{scenario.title} — Your Turn</h1>
+          <p className="text-neutral-500 mt-2">
+            Play the call again if you need to, then record exactly how you'd respond to
+            this customer. Your response will be scored automatically.
+          </p>
+        </div>
+
+        <Card>
+          <CardContent className="py-4">
+            {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+            <audio controls src={scenario.audioUrl} className="w-full" />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Record your response</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <CallRecorder onSubmit={submitRecording} submitting={submitting} />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (step === "error") {
+    return (
+      <div className="space-y-6">
+        <Alert className="border-red-300 bg-red-50">
+          <XCircle className="h-4 w-4 text-red-600" />
+          <AlertTitle>Couldn't score this attempt</AlertTitle>
+          <AlertDescription>{errorMsg}</AlertDescription>
+        </Alert>
+        <Button onClick={() => setStep("record")} className="w-full bg-[#152645] hover:bg-[#152645]/90">
+          Try again
+        </Button>
+      </div>
+    );
+  }
+
+  // step === "result"
+  if (!result) return null;
+  const { score, passed, passingScore, transcript, categoryScores, coachingNotes, wordTrack } =
+    result;
 
   return (
     <div className="space-y-6">
@@ -203,38 +235,81 @@ export function ScenarioPractice({ scenario, roleLabel }: Props) {
         ) : (
           <XCircle className="h-4 w-4 text-red-600" />
         )}
-        <AlertTitle>
-          {passed ? "Passed!" : "Not quite — review and try again"}
-        </AlertTitle>
+        <AlertTitle>{passed ? "Passed!" : "Not quite — review and try again"}</AlertTitle>
         <AlertDescription>
-          You scored <Badge variant="secondary">{score}%</Badge> — passing score is{" "}
-          {scenario.passingScore}%.
+          You scored <Badge variant="secondary">{score}/100</Badge> — passing score is{" "}
+          {passingScore}/100.
         </AlertDescription>
       </Alert>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Review</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {scenario.questions.map((q, qi) => {
-            const correct = answers[qi] === q.correctIndex;
-            return (
-              <div key={q.id} className="text-sm">
-                <div className="flex items-start gap-2 font-medium">
-                  {correct ? (
-                    <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 shrink-0" />
-                  ) : (
-                    <XCircle className="h-4 w-4 text-red-600 mt-0.5 shrink-0" />
-                  )}
-                  {q.question}
+      {categoryScores && categoryScores.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Score breakdown</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {categoryScores.map((c, i) => (
+              <div key={i} className="space-y-1">
+                <div className="flex items-center justify-between text-sm font-medium">
+                  <span>{c.name}</span>
+                  <span>{c.score}/100</span>
                 </div>
-                <p className="text-neutral-500 ml-6 mt-1">{q.explanation}</p>
+                <div className="h-2 rounded-full bg-neutral-100 overflow-hidden">
+                  <div
+                    className="h-full bg-[#152645]"
+                    style={{ width: `${Math.max(0, Math.min(100, c.score))}%` }}
+                  />
+                </div>
+                <p className="text-xs text-neutral-500">{c.note}</p>
               </div>
-            );
-          })}
-        </CardContent>
-      </Card>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {coachingNotes && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Coaching notes</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-neutral-700">{coachingNotes}</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {wordTrack && (
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-base">Word track for next time</CardTitle>
+            <Button variant="outline" size="sm" onClick={copyWordTrack}>
+              {copied ? (
+                <>
+                  <Check className="h-3.5 w-3.5 mr-1.5" /> Copied
+                </>
+              ) : (
+                <>
+                  <Copy className="h-3.5 w-3.5 mr-1.5" /> Copy
+                </>
+              )}
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-neutral-700 italic">&ldquo;{wordTrack}&rdquo;</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {transcript && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">What you said</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-neutral-500">{transcript}</p>
+          </CardContent>
+        </Card>
+      )}
 
       {passed && (
         <Card>
