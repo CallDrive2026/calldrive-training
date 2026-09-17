@@ -107,10 +107,10 @@ export function DashboardClient() {
     return (
       <Card>
         <CardContent className="py-12 text-center space-y-4">
-          <ShieldCheck className="h-10 w-10 text-[#152645] mx-auto" />
+          <ShieldCheck className="h-10 w-10 text-[#B91C1C] mx-auto" />
           <p className="text-neutral-600">Manager sign-in is required to view this dashboard.</p>
           <Link href="/manager-login">
-            <Button className="bg-[#152645] hover:bg-[#152645]/90">Manager Sign In</Button>
+            <Button className="bg-[#B91C1C] hover:bg-[#B91C1C]/90">Manager Sign In</Button>
           </Link>
         </CardContent>
       </Card>
@@ -164,7 +164,7 @@ export function DashboardClient() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-base">
-            <Users className="h-4 w-4 text-[#152645]" /> By Employee
+            <Users className="h-4 w-4 text-[#B91C1C]" /> By Employee
           </CardTitle>
           <Button variant="outline" size="sm" onClick={fetchAttempts}>
             <RefreshCw className="h-4 w-4 mr-2" /> Refresh
@@ -213,7 +213,7 @@ export function DashboardClient() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
-            <CheckCircle className="h-4 w-4 text-[#152645]" /> Recent Attempts
+            <CheckCircle className="h-4 w-4 text-[#B91C1C]" /> Recent Attempts
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -315,7 +315,7 @@ export function DashboardClient() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
-            <Mail className="h-4 w-4 text-[#152645]" /> Pilot Program Leads
+            <Mail className="h-4 w-4 text-[#B91C1C]" /> Pilot Program Leads
           </CardTitle>
         </CardHeader>
         <CardContent>

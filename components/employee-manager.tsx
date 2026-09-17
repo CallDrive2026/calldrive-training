@@ -76,7 +76,7 @@ export function EmployeeManager() {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
-          <UserPlus className="h-4 w-4 text-[#152645]" /> Employee Accounts
+          <UserPlus className="h-4 w-4 text-[#B91C1C]" /> Employee Accounts
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -99,7 +99,7 @@ export function EmployeeManager() {
             <Label htmlFor="emp-location">Location</Label>
             <Input id="emp-location" value={location} onChange={(e) => setLocation(e.target.value)} />
           </div>
-          <Button type="submit" className="bg-[#152645] hover:bg-[#152645]/90" disabled={loading}>
+          <Button type="submit" className="bg-[#B91C1C] hover:bg-[#B91C1C]/90" disabled={loading}>
             {loading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
             Add Employee
           </Button>

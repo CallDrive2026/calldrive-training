@@ -18,13 +18,13 @@ export function Certificate({ employeeName, scenarioTitle, date }: CertificatePr
         className="absolute inset-0 w-full h-full object-cover"
       />
       <div className="absolute inset-0 flex flex-col items-center justify-end text-center px-6 pb-10">
-        <div className="text-xl md:text-2xl font-bold text-[#152645] drop-shadow-sm">
+        <div className="text-xl md:text-2xl font-bold text-[#B91C1C] drop-shadow-sm">
           {employeeName}
         </div>
         <div className="mt-1 text-sm md:text-base text-neutral-700">
           has successfully completed
         </div>
-        <div className="text-base md:text-lg font-semibold text-[#152645]">
+        <div className="text-base md:text-lg font-semibold text-[#B91C1C]">
           {scenarioTitle}
         </div>
         <div className="mt-2 text-xs md:text-sm text-neutral-600">{date}</div>

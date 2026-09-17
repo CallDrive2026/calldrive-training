@@ -17,22 +17,14 @@ import {
 
 const ICONS = { sales: Briefcase, reception: Phone, service: Users } as const;
 
-const HERO_IMAGE = "https://g.tlcdn.com/gen/b80dd423e8cb4cd59be804303e84a488.png";
-const PRACTICE_GAP_IMAGE = "https://g.tlcdn.com/gen/95ec347da5b749a5b8345a3df321470f.png";
-const ROLE_COVERAGE_IMAGE = "https://g.tlcdn.com/gen/53289ed0f29a4c31b322cf4c5a3cae9f.png";
-const SCORECARD_IMAGE = "https://g.tlcdn.com/gen/a35a9bfc29e0435ea1bc126833c7c811.png";
+const PRACTICE_GAP_IMAGE = "https://g.tlcdn.com/gen/2f40a59bc64444baa9c7ccaaea299616.png";
+const ROLE_COVERAGE_IMAGE = "https://g.tlcdn.com/gen/a676d4a1e4104473a4af27e8552cdb7f.png";
 
 export default function HomePage() {
   return (
     <div>
       {/* HERO */}
-      <div className="relative bg-[#152645] text-white overflow-hidden">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={HERO_IMAGE}
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover opacity-30"
-        />
+      <div className="relative bg-[#140C0C] text-white overflow-hidden">
         <div className="relative max-w-6xl mx-auto px-6 py-20 flex flex-col items-center text-center gap-6">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -53,7 +45,7 @@ export default function HomePage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-3 mt-2">
             <Link href="#roles">
-              <Button size="lg" className="bg-white text-[#152645] hover:bg-neutral-100">
+              <Button size="lg" className="bg-white text-[#B91C1C] hover:bg-neutral-100">
                 Start Practice
               </Button>
             </Link>
@@ -78,7 +70,7 @@ export default function HomePage() {
       <div className="max-w-6xl mx-auto px-6 py-16">
         <div className="grid md:grid-cols-2 gap-10 items-center">
           <div>
-            <p className="text-sm font-semibold text-[#152645] uppercase tracking-wide mb-2">
+            <p className="text-sm font-semibold text-[#B91C1C] uppercase tracking-wide mb-2">
               The practice gap
             </p>
             <h2 className="text-3xl font-bold mb-4">
@@ -121,7 +113,7 @@ export default function HomePage() {
       <div className="bg-neutral-50 border-y">
         <div className="max-w-6xl mx-auto px-6 py-16">
           <div className="text-center max-w-2xl mx-auto mb-10">
-            <p className="text-sm font-semibold text-[#152645] uppercase tracking-wide mb-2">
+            <p className="text-sm font-semibold text-[#B91C1C] uppercase tracking-wide mb-2">
               Configurable dealership call flows
             </p>
             <h2 className="text-3xl font-bold mb-3">
@@ -181,10 +173,8 @@ export default function HomePage() {
       {/* MANAGER PROOF */}
       <div className="max-w-6xl mx-auto px-6 py-16">
         <div className="grid md:grid-cols-2 gap-10 items-center">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={SCORECARD_IMAGE} alt="" className="rounded-xl w-full shadow-sm order-2 md:order-1" />
-          <div className="order-1 md:order-2">
-            <p className="text-sm font-semibold text-[#152645] uppercase tracking-wide mb-2">
+          <div>
+            <p className="text-sm font-semibold text-[#B91C1C] uppercase tracking-wide mb-2">
               Manager proof
             </p>
             <h2 className="text-3xl font-bold mb-4">See the behavior behind the score.</h2>
@@ -195,13 +185,13 @@ export default function HomePage() {
             </p>
             <div className="space-y-3">
               <div className="flex items-start gap-3">
-                <Eye className="h-5 w-5 text-[#152645] shrink-0 mt-0.5" />
+                <Eye className="h-5 w-5 text-[#B91C1C] shrink-0 mt-0.5" />
                 <p className="text-sm text-neutral-600">
                   Managers see what to coach next — not just a number to file away.
                 </p>
               </div>
               <div className="flex items-start gap-3">
-                <Repeat className="h-5 w-5 text-[#152645] shrink-0 mt-0.5" />
+                <Repeat className="h-5 w-5 text-[#B91C1C] shrink-0 mt-0.5" />
                 <p className="text-sm text-neutral-600">
                   Teams practice the exact calls they receive, as many times as it takes.
                 </p>
@@ -222,16 +212,16 @@ export default function HomePage() {
               const Icon = ICONS[role.id];
               return (
                 <Link key={role.id} href={`/train/${role.id}`}>
-                  <Card className="h-full bg-white hover:shadow-md hover:border-[#152645]/40 transition-all cursor-pointer border-t-4 border-t-[#152645]">
+                  <Card className="h-full bg-white hover:shadow-md hover:border-[#B91C1C]/40 transition-all cursor-pointer border-t-4 border-t-[#B91C1C]">
                     <CardHeader>
-                      <div className="h-10 w-10 rounded-lg bg-[#152645]/10 flex items-center justify-center mb-2">
-                        <Icon className="h-5 w-5 text-[#152645]" />
+                      <div className="h-10 w-10 rounded-lg bg-[#B91C1C]/10 flex items-center justify-center mb-2">
+                        <Icon className="h-5 w-5 text-[#B91C1C]" />
                       </div>
                       <CardTitle>{role.label}</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <p className="text-sm text-neutral-500 mb-4">{role.description}</p>
-                      <div className="flex items-center gap-1 text-sm font-medium text-[#152645]">
+                      <div className="flex items-center gap-1 text-sm font-medium text-[#B91C1C]">
                         Start training <ArrowRight className="h-4 w-4" />
                       </div>
                     </CardContent>
@@ -246,7 +236,7 @@ export default function HomePage() {
       {/* PILOT FORM */}
       <div id="pilot" className="max-w-3xl mx-auto px-6 py-16 scroll-mt-16">
         <div className="text-center mb-8">
-          <p className="text-sm font-semibold text-[#152645] uppercase tracking-wide mb-2 flex items-center justify-center gap-2">
+          <p className="text-sm font-semibold text-[#B91C1C] uppercase tracking-wide mb-2 flex items-center justify-center gap-2">
             <Building2 className="h-4 w-4" /> Secondary path · 30-day pilot
           </p>
           <h2 className="text-3xl font-bold mb-3">Put the practice loop in front of one team.</h2>

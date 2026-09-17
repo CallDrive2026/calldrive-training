@@ -63,7 +63,7 @@ function LoginForm() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <LogIn className="h-5 w-5 text-[#152645]" /> Employee Sign In
+            <LogIn className="h-5 w-5 text-[#B91C1C]" /> Employee Sign In
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -102,7 +102,7 @@ function LoginForm() {
                 required
               />
             </div>
-            <Button type="submit" className="w-full bg-[#152645] hover:bg-[#152645]/90" disabled={loading}>
+            <Button type="submit" className="w-full bg-[#B91C1C] hover:bg-[#B91C1C]/90" disabled={loading}>
               {loading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
               Sign In
             </Button>

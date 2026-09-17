@@ -127,7 +127,7 @@ export function ScenarioPractice({ scenario, roleLabel }: Props) {
     return (
       <div className="space-y-6">
         <div>
-          <p className="text-sm text-[#152645] font-medium">{roleLabel} Scenario</p>
+          <p className="text-sm text-[#B91C1C] font-medium">{roleLabel} Scenario</p>
           <h1 className="text-2xl font-bold mt-1">{scenario.title}</h1>
           <p className="text-neutral-500 mt-2">{scenario.situation}</p>
         </div>
@@ -135,7 +135,7 @@ export function ScenarioPractice({ scenario, roleLabel }: Props) {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
-              <Phone className="h-4 w-4 text-[#152645]" /> Listen to the call
+              <Phone className="h-4 w-4 text-[#B91C1C]" /> Listen to the call
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -160,7 +160,7 @@ export function ScenarioPractice({ scenario, roleLabel }: Props) {
 
         <Card>
           <CardContent className="flex items-center gap-3 py-4 text-sm text-neutral-600">
-            <User className="h-4 w-4 text-[#152645]" />
+            <User className="h-4 w-4 text-[#B91C1C]" />
             Logging this attempt as <strong>{employee.name}</strong>
             {employee.location ? ` — ${employee.location}` : ""}
           </CardContent>
@@ -168,7 +168,7 @@ export function ScenarioPractice({ scenario, roleLabel }: Props) {
 
         <Button
           onClick={() => setStep("record")}
-          className="w-full bg-[#152645] hover:bg-[#152645]/90"
+          className="w-full bg-[#B91C1C] hover:bg-[#B91C1C]/90"
           size="lg"
         >
           Practice your response
@@ -215,7 +215,7 @@ export function ScenarioPractice({ scenario, roleLabel }: Props) {
           <AlertTitle>Couldn't score this attempt</AlertTitle>
           <AlertDescription>{errorMsg}</AlertDescription>
         </Alert>
-        <Button onClick={() => setStep("record")} className="w-full bg-[#152645] hover:bg-[#152645]/90">
+        <Button onClick={() => setStep("record")} className="w-full bg-[#B91C1C] hover:bg-[#B91C1C]/90">
           Try again
         </Button>
       </div>
@@ -256,7 +256,7 @@ export function ScenarioPractice({ scenario, roleLabel }: Props) {
                 </div>
                 <div className="h-2 rounded-full bg-neutral-100 overflow-hidden">
                   <div
-                    className="h-full bg-[#152645]"
+                    className="h-full bg-[#B91C1C]"
                     style={{ width: `${Math.max(0, Math.min(100, c.score))}%` }}
                   />
                 </div>
@@ -332,7 +332,7 @@ export function ScenarioPractice({ scenario, roleLabel }: Props) {
         </Button>
         <Button
           onClick={() => (window.location.href = `/train/${scenario.role}`)}
-          className="flex-1 bg-[#152645] hover:bg-[#152645]/90"
+          className="flex-1 bg-[#B91C1C] hover:bg-[#B91C1C]/90"
         >
           Back to Scenarios
         </Button>
