@@ -40,7 +40,7 @@ export function Nav() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={LOGO_IMAGE_URL} alt="CallDrive" className="h-16 w-16 object-contain shrink-0" />
           <div className="leading-tight">
-            <div className="font-bold text-xl text-[#152645] tracking-tight">CallDrive</div>
+            <div className="font-bold text-xl text-[#B91C1C] tracking-tight">CallDrive</div>
             <div className="text-[10px] uppercase tracking-widest text-neutral-500 font-medium">
               Sales Training App
             </div>
@@ -53,7 +53,7 @@ export function Nav() {
               href={l.href}
               className={cn(
                 "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-neutral-100",
-                pathname === l.href && "bg-neutral-100 text-[#152645]"
+                pathname === l.href && "bg-neutral-100 text-[#B91C1C]"
               )}
             >
               <l.icon className="h-4 w-4" />

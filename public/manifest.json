@@ -4,8 +4,8 @@
   "description": "Practice today. Close tomorrow. Inbound call training for sales, reception, and service teams.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#152645",
-  "theme_color": "#152645",
+  "background_color": "#B91C1C",
+  "theme_color": "#B91C1C",
   "orientation": "portrait-primary",
   "icons": [
     {
