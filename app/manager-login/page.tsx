@@ -59,7 +59,7 @@ export default function ManagerLoginPage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <ShieldCheck className="h-5 w-5 text-[#B91C1C]" />
+            <ShieldCheck className="h-5 w-5 text-[#B4443A]" />
             {codeSet === false ? "Set Up Manager Access" : "Manager Sign In"}
           </CardTitle>
         </CardHeader>
@@ -103,7 +103,7 @@ export default function ManagerLoginPage() {
                   />
                 </div>
               )}
-              <Button type="submit" className="w-full bg-[#B91C1C] hover:bg-[#B91C1C]/90" disabled={loading}>
+              <Button type="submit" className="w-full bg-[#B4443A] hover:bg-[#B4443A]/90" disabled={loading}>
                 {loading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
                 {codeSet ? "Sign In" : "Create Code & Sign In"}
               </Button>

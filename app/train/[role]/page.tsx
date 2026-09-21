@@ -10,7 +10,7 @@ export default async function RolePage({ params }: { params: Promise<{ role: str
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-12">
-      <p className="text-sm text-[#B91C1C] font-medium mb-1">{roleInfo.label} Training</p>
+      <p className="text-sm text-[#B4443A] font-medium mb-1">{roleInfo.label} Training</p>
       <h1 className="text-3xl font-bold mb-2">Practice Scenarios</h1>
       <p className="text-neutral-500 mb-8">{roleInfo.description}</p>
 

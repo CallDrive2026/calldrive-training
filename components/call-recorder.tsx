@@ -91,7 +91,7 @@ export function CallRecorder({ onSubmit, submitting }: Props) {
             className={
               recording
                 ? "bg-red-600 hover:bg-red-700 rounded-full h-16 w-16 p-0"
-                : "bg-[#B91C1C] hover:bg-[#B91C1C]/90 rounded-full h-16 w-16 p-0"
+                : "bg-[#B4443A] hover:bg-[#B4443A]/90 rounded-full h-16 w-16 p-0"
             }
           >
             {recording ? <Square className="h-6 w-6" /> : <Mic className="h-6 w-6" />}
@@ -120,7 +120,7 @@ export function CallRecorder({ onSubmit, submitting }: Props) {
               type="button"
               onClick={submit}
               disabled={submitting}
-              className="flex-1 bg-[#B91C1C] hover:bg-[#B91C1C]/90"
+              className="flex-1 bg-[#B4443A] hover:bg-[#B4443A]/90"
             >
               {submitting ? (
                 <>
