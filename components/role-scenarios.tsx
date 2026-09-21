@@ -51,7 +51,7 @@ export function RoleScenarios({ role, scenarios }: Props) {
         return (
           <div key={levelId}>
             <div className="flex items-center gap-3 mb-1">
-              <h2 className="text-lg font-bold text-[#B91C1C]">{levelInfo.label}</h2>
+              <h2 className="text-lg font-bold text-[#B4443A]">{levelInfo.label}</h2>
               <Badge variant="secondary" className="uppercase text-[10px] tracking-wide">
                 Level {levelIndex + 1}
               </Badge>
@@ -70,15 +70,15 @@ export function RoleScenarios({ role, scenarios }: Props) {
                   <Card
                     className={
                       unlocked
-                        ? "hover:shadow-md hover:border-[#B91C1C]/40 transition-all cursor-pointer"
+                        ? "hover:shadow-md hover:border-[#B4443A]/40 transition-all cursor-pointer"
                         : "opacity-60 cursor-not-allowed"
                     }
                   >
                     <CardContent className="flex items-center justify-between py-5">
                       <div className="flex items-start gap-4">
-                        <div className="h-9 w-9 rounded-full bg-[#B91C1C]/10 flex items-center justify-center shrink-0 mt-0.5">
+                        <div className="h-9 w-9 rounded-full bg-[#B4443A]/10 flex items-center justify-center shrink-0 mt-0.5">
                           {unlocked ? (
-                            <Phone className="h-4 w-4 text-[#B91C1C]" />
+                            <Phone className="h-4 w-4 text-[#B4443A]" />
                           ) : (
                             <Lock className="h-4 w-4 text-neutral-400" />
                           )}

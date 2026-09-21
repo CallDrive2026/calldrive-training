@@ -40,7 +40,7 @@ export function PilotForm() {
   if (done) {
     return (
       <div className="flex flex-col items-center text-center gap-3 py-8">
-        <CheckCircle className="h-10 w-10 text-[#B91C1C]" />
+        <CheckCircle className="h-10 w-10 text-[#B4443A]" />
         <p className="font-semibold text-lg">Thanks — we'll be in touch.</p>
         <p className="text-neutral-500 text-sm max-w-sm">
           We'll reach out to talk through your call moments, role mix, and manager workflow.
@@ -74,7 +74,7 @@ export function PilotForm() {
       <Button
         type="submit"
         disabled={submitting}
-        className="w-full bg-[#B91C1C] hover:bg-[#B91C1C]/90"
+        className="w-full bg-[#B4443A] hover:bg-[#B4443A]/90"
         size="lg"
       >
         {submitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
