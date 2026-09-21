@@ -5,23 +5,24 @@ import { scenariosPart3 } from "./scenario-data-part3";
 import { scenariosPart4 } from "./scenario-data-part4";
 import { scenariosPart5 } from "./scenario-data-part5";
 import { scenariosPart6 } from "./scenario-data-part6";
-
+import { scenariosPart7 } from "./scenario-data-part7";
+import { scenariosPart8 } from "./scenario-data-part8";
 
 export const ROLES: RoleInfo[] = [
   {
     id: "sales",
-    label: "Salesperson",
-    description: "Handle price, availability, trade-in, financing, and lease vs. buy inbound calls.",
+    label: "Sales",
+    description: "Handle inbound sales calls from prospective car buyers.",
   },
   {
     id: "reception",
-    label: "Receptionist",
-    description: "Greet, triage, and route inbound calls to the right department.",
+    label: "Reception",
+    description: "Handle inbound calls at the front desk and route them correctly.",
   },
   {
     id: "service",
-    label: "Service Advisor",
-    description: "Handle status checks, scheduling, recalls, warranty, and frustrated customers.",
+    label: "Service",
+    description: "Handle inbound service department calls from current customers.",
   },
 ];
 
@@ -29,17 +30,17 @@ export const LEVELS: LevelInfo[] = [
   {
     id: "newbie",
     label: "Newbie",
-    description: "Straightforward calls to build the fundamentals.",
+    description: "Foundational scenarios for new hires.",
   },
   {
     id: "seasoned",
     label: "Seasoned Vet",
-    description: "More nuanced calls that require judgment and follow-through.",
+    description: "Trickier scenarios requiring more judgment.",
   },
   {
     id: "superstar",
-    label: "Superstar Professional",
-    description: "High-pressure calls: aggressive price/payment demands, financing pushback, and disputes.",
+    label: "Superstar Pro",
+    description: "Advanced, high-stakes scenarios for top performers.",
   },
 ];
 
@@ -52,6 +53,8 @@ export const SCENARIOS: Scenario[] = [
   ...scenariosPart4,
   ...scenariosPart5,
   ...scenariosPart6,
+  ...scenariosPart7,
+  ...scenariosPart8,
 ];
 
 export function getScenariosByRole(role: string): Scenario[] {
@@ -64,6 +67,5 @@ export function getScenario(id: string): Scenario | undefined {
 
 export const CERTIFICATE_IMAGE_URL =
   "https://galaxy-prod.tlcdn.com/gen/user_39iXjxyQdmhoj5bVhki8e1ab0c2/d2265a3a-0a30-481a-b641-145f174ea628.png";
-
 export const LOGO_IMAGE_URL =
   "https://g.tlcdn.com/view/b58ea86ca3b945e195fd75ead218643e.png";
