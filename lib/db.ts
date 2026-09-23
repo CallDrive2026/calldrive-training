@@ -62,6 +62,29 @@ export async function ensureSchema() {
       goal TEXT,
       created_at TIMESTAMPTZ NOT NULL DEFAULT now()
     );
+
+    CREATE TABLE IF NOT EXISTS organizations (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      clerk_org_id TEXT UNIQUE,
+      name TEXT NOT NULL DEFAULT 'Unnamed Dealer Group',
+      rooftop_count INTEGER NOT NULL DEFAULT 1,
+      billing_interval TEXT NOT NULL DEFAULT 'month',
+      subscription_status TEXT NOT NULL DEFAULT 'trialing',
+      stripe_customer_id TEXT,
+      stripe_subscription_id TEXT,
+      trial_ends_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+
+    ALTER TABLE employees ADD COLUMN IF NOT EXISTS org_id UUID REFERENCES organizations(id);
+    ALTER TABLE attempts ADD COLUMN IF NOT EXISTS org_id UUID REFERENCES organizations(id);
+
+    INSERT INTO organizations (id, clerk_org_id, name, rooftop_count, subscription_status)
+    VALUES ('00000000-0000-0000-0000-000000000001', NULL, 'CallDrive Internal', 1, 'active')
+    ON CONFLICT (id) DO NOTHING;
+
+    UPDATE employees SET org_id = '00000000-0000-0000-0000-000000000001' WHERE org_id IS NULL;
+    UPDATE attempts SET org_id = '00000000-0000-0000-0000-000000000001' WHERE org_id IS NULL;
   `);
   migrated = true;
 }

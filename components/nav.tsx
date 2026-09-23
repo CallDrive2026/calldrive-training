@@ -1,46 +1,42 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { BarChart3, Home, LogIn, LogOut, User } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { BarChart3, Home, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LOGO_IMAGE_URL } from "@/lib/scenarios";
-import { getEmployee, clearEmployee, isManager, setManager, LoggedInEmployee } from "@/lib/auth";
+import {
+  SignedIn,
+  SignedOut,
+  SignInButton,
+  UserButton,
+  OrganizationSwitcher,
+} from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 
 const links = [
   { href: "/", label: "Home", icon: Home },
   { href: "/dashboard", label: "Manager Dashboard", icon: BarChart3 },
+  { href: "/org-settings", label: "Team & Billing", icon: Settings },
 ];
 
 export function Nav() {
   const pathname = usePathname();
-  const router = useRouter();
-  const [employee, setEmployeeState] = useState<LoggedInEmployee | null>(null);
-  const [manager, setManagerState] = useState(false);
-
-  useEffect(() => {
-    setEmployeeState(getEmployee());
-    setManagerState(isManager());
-  }, [pathname]);
-
-  const signOut = () => {
-    clearEmployee();
-    setManager(false);
-    setEmployeeState(null);
-    setManagerState(false);
-    router.push("/");
-  };
 
   return (
     <header className="border-b bg-white sticky top-0 z-10">
       <div className="max-w-6xl mx-auto px-6 py-2 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-4">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={LOGO_IMAGE_URL} alt="CallDrive" className="h-16 w-16 object-contain shrink-0" />
+          <img
+            src={LOGO_IMAGE_URL}
+            alt="CallDrive"
+            className="h-16 w-16 object-contain shrink-0"
+          />
           <div className="leading-tight">
-            <div className="font-bold text-xl text-[#B4443A] tracking-tight">CallDrive</div>
+            <div className="font-bold text-xl text-[#B4443A] tracking-tight">
+              CallDrive
+            </div>
             <div className="text-[10px] uppercase tracking-widest text-neutral-500 font-medium">
               Sales Training App
             </div>
@@ -62,23 +58,25 @@ export function Nav() {
           ))}
 
           <div className="ml-2 pl-3 border-l flex items-center gap-2">
-            {employee || manager ? (
-              <>
-                <span className="flex items-center gap-1 text-sm text-neutral-600">
-                  <User className="h-4 w-4" />
-                  {manager ? "Manager" : employee?.name}
-                </span>
-                <Button variant="outline" size="sm" onClick={signOut}>
-                  <LogOut className="h-4 w-4 mr-1" /> Sign out
-                </Button>
-              </>
-            ) : (
-              <Link href="/login">
+            <SignedIn>
+              <OrganizationSwitcher
+                afterSelectOrganizationUrl="/train/sales"
+                afterCreateOrganizationUrl="/train/sales"
+              />
+              <UserButton afterSignOutUrl="/" />
+            </SignedIn>
+            <SignedOut>
+              <SignInButton mode="modal">
                 <Button variant="outline" size="sm">
-                  <LogIn className="h-4 w-4 mr-1" /> Sign In
+                  Sign In
+                </Button>
+              </SignInButton>
+              <Link href="/pricing">
+                <Button size="sm" className="bg-[#B4443A] hover:bg-[#963831]">
+                  Start Free Trial
                 </Button>
               </Link>
-            )}
+            </SignedOut>
           </div>
         </nav>
       </div>
