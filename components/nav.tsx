@@ -63,7 +63,7 @@ export function Nav() {
                 afterSelectOrganizationUrl="/train/sales"
                 afterCreateOrganizationUrl="/train/sales"
               />
-              <UserButton afterSignOutUrl="/" />
+              <UserButton />
             </SignedIn>
             <SignedOut>
               <SignInButton mode="modal">
