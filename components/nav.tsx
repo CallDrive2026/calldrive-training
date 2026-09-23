@@ -6,8 +6,7 @@ import { BarChart3, Home, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LOGO_IMAGE_URL } from "@/lib/scenarios";
 import {
-  SignedIn,
-  SignedOut,
+  Show,
   SignInButton,
   UserButton,
   OrganizationSwitcher,
@@ -58,14 +57,14 @@ export function Nav() {
           ))}
 
           <div className="ml-2 pl-3 border-l flex items-center gap-2">
-            <SignedIn>
+            <Show when="signed-in">
               <OrganizationSwitcher
                 afterSelectOrganizationUrl="/train/sales"
                 afterCreateOrganizationUrl="/train/sales"
               />
               <UserButton />
-            </SignedIn>
-            <SignedOut>
+            </Show>
+            <Show when="signed-out">
               <SignInButton mode="modal">
                 <Button variant="outline" size="sm">
                   Sign In
@@ -76,7 +75,7 @@ export function Nav() {
                   Start Free Trial
                 </Button>
               </Link>
-            </SignedOut>
+            </Show>
           </div>
         </nav>
       </div>
