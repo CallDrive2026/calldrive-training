@@ -7,6 +7,8 @@ import { scenariosPart5 } from "./scenario-data-part5";
 import { scenariosPart6 } from "./scenario-data-part6";
 import { scenariosPart7 } from "./scenario-data-part7";
 import { scenariosPart8 } from "./scenario-data-part8";
+import { scenariosPart9 } from "./scenario-data-part9";
+import { scenariosPart10 } from "./scenario-data-part10";
 
 export const ROLES: RoleInfo[] = [
   {
@@ -55,6 +57,8 @@ export const SCENARIOS: Scenario[] = [
   ...scenariosPart6,
   ...scenariosPart7,
   ...scenariosPart8,
+  ...scenariosPart9,
+  ...scenariosPart10,
 ];
 
 export function getScenariosByRole(role: string): Scenario[] {
