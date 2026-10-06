@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmployeeManager } from "@/components/employee-manager";
+import { DeleteParticipantButton } from "@/components/delete-participant-button";
 import { isManager } from "@/lib/auth";
 
 export function DashboardClient() {
@@ -159,7 +160,7 @@ export function DashboardClient() {
         </Card>
       </div>
 
-      <EmployeeManager />
+      <EmployeeManager onChange={fetchAttempts} />
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
@@ -184,6 +185,7 @@ export function DashboardClient() {
                   <TableHead>Attempts</TableHead>
                   <TableHead>Passed</TableHead>
                   <TableHead>Avg. Score</TableHead>
+                  <TableHead className="w-16"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -201,6 +203,9 @@ export function DashboardClient() {
                         {e.avgScore >= 80 && <TrendingUp className="h-3 w-3" />}
                         {e.avgScore}%
                       </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <DeleteParticipantButton name={e.name} onDeleted={fetchAttempts} />
                     </TableCell>
                   </TableRow>
                 ))}

@@ -14,7 +14,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { UserPlus, Trash, AlertCircle, Loader2 } from "lucide-react";
+import { UserPlus, AlertCircle, Loader2 } from "lucide-react";
+import { DeleteParticipantButton } from "@/components/delete-participant-button";
 
 interface EmployeeOption {
   id: string;
@@ -23,7 +24,7 @@ interface EmployeeOption {
   createdAt: string;
 }
 
-export function EmployeeManager() {
+export function EmployeeManager({ onChange }: { onChange?: () => void }) {
   const [employees, setEmployees] = useState<EmployeeOption[]>([]);
   const [name, setName] = useState("");
   const [pin, setPin] = useState("");
@@ -65,11 +66,6 @@ export function EmployeeManager() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const removeEmployee = async (id: string) => {
-    await fetch(`/api/employees/${id}`, { method: "DELETE" });
-    fetchEmployees();
   };
 
   return (
@@ -133,9 +129,13 @@ export function EmployeeManager() {
                   <TableCell className="font-medium">{e.name}</TableCell>
                   <TableCell>{e.location}</TableCell>
                   <TableCell>
-                    <Button variant="ghost" size="sm" onClick={() => removeEmployee(e.id)}>
-                      <Trash className="h-4 w-4 text-red-500" />
-                    </Button>
+                    <DeleteParticipantButton
+                      name={e.name}
+                      onDeleted={() => {
+                        fetchEmployees();
+                        onChange?.();
+                      }}
+                    />
                   </TableCell>
                 </TableRow>
               ))
