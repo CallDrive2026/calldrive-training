@@ -1,21 +1,11 @@
 import { NextResponse } from "next/server";
-import { addAttempt, listAttempts } from "@/lib/store";
+import { listAttempts } from "@/lib/store";
+import { getTenant } from "@/lib/tenant";
 
+// Attempts are only ever recorded by the scoring endpoint
+// (/api/attempts/score-call). Reading everyone's results is admin-only.
 export async function GET() {
-  const attempts = await listAttempts();
-  return NextResponse.json(attempts);
-}
-
-export async function POST(request: Request) {
-  const body = await request.json();
-  const attempt = await addAttempt({
-    employeeName: body.employeeName || "Anonymous",
-    location: body.location || "Unspecified",
-    role: body.role,
-    scenarioId: body.scenarioId,
-    scenarioTitle: body.scenarioTitle,
-    score: body.score,
-    passed: body.passed,
-  });
-  return NextResponse.json(attempt, { status: 201 });
+  const tenant = await getTenant({ requireAdmin: true });
+  if (!tenant.ok) return tenant.response;
+  return NextResponse.json(await listAttempts(tenant.ctx.org.id));
 }
