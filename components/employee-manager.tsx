@@ -34,6 +34,7 @@ export function EmployeeManager({ onChange }: { onChange?: () => void }) {
 
   const fetchEmployees = useCallback(async () => {
     const res = await fetch("/api/employees");
+    if (!res.ok) return;
     setEmployees(await res.json());
   }, []);
 

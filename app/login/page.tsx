@@ -29,8 +29,8 @@ function LoginForm() {
 
   useEffect(() => {
     fetch("/api/employees")
-      .then((r) => r.json())
-      .then(setEmployees)
+      .then((r) => (r.ok ? r.json() : []))
+      .then((d) => setEmployees(Array.isArray(d) ? d : []))
       .catch(() => {});
   }, []);
 

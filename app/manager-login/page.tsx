@@ -13,6 +13,7 @@ import { setManager } from "@/lib/auth";
 export default function ManagerLoginPage() {
   const router = useRouter();
   const [codeSet, setCodeSet] = useState<boolean | null>(null);
+  const [canSet, setCanSet] = useState(true);
   const [code, setCode] = useState("");
   const [confirmCode, setConfirmCode] = useState("");
   const [error, setError] = useState("");
@@ -21,7 +22,15 @@ export default function ManagerLoginPage() {
   useEffect(() => {
     fetch("/api/manager")
       .then((r) => r.json())
-      .then((data) => setCodeSet(data.codeSet));
+      .then((data) => {
+        if (typeof data.codeSet !== "boolean") {
+          setError(data.error || "Could not load manager access.");
+          return;
+        }
+        setCodeSet(data.codeSet);
+        setCanSet(data.canSet !== false);
+      })
+      .catch(() => setError("Could not load manager access."));
   }, []);
 
   const submit = async (e: React.FormEvent) => {
@@ -65,7 +74,12 @@ export default function ManagerLoginPage() {
         </CardHeader>
         <CardContent>
           {codeSet === null ? (
-            <p className="text-sm text-neutral-500">Loading...</p>
+            <p className="text-sm text-neutral-500">{error || "Loading..."}</p>
+          ) : codeSet === false && !canSet ? (
+            <p className="text-sm text-neutral-600">
+              No manager code has been set for your organization yet. Ask an
+              organization admin to sign in here and create it.
+            </p>
           ) : (
             <form onSubmit={submit} className="space-y-4">
               {error && (
