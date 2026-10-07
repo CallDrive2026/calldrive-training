@@ -1,4 +1,5 @@
 import { Pool } from "pg";
+import { hashSecret, newAccessSlug } from "@/lib/secrets";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -18,12 +19,15 @@ export function getPool(): Pool {
 /** The platform owner's organization (internal use, never billed). */
 export const PLATFORM_ORG_ID = "00000000-0000-0000-0000-000000000001";
 
+/** Team members each dealership account may add before the platform owner must approve more. */
+export const DEFAULT_EMPLOYEE_LIMIT = 30;
+
 let migration: Promise<void> | null = null;
 
 /**
  * Creates/upgrades the schema. Safe to call on every request: the work runs
- * once per server instance and is serialized across instances with an
- * advisory lock.
+ * once per server instance and is serialized across instances with advisory
+ * locks.
  */
 export function ensureSchema(): Promise<void> {
   if (!migration) {
@@ -35,8 +39,29 @@ export function ensureSchema(): Promise<void> {
   return migration;
 }
 
+/**
+ * Only one server instance may run the migration at a time. Without this, two
+ * instances starting together can each hold a table lock the other needs and
+ * Postgres aborts one with "deadlock detected". The lock is held on its own
+ * connection for the whole migration and released when it finishes (or if the
+ * instance dies).
+ */
 async function runMigrations() {
   const pool = getPool();
+  const lockClient = await pool.connect();
+  try {
+    await lockClient.query("SELECT pg_advisory_lock(727400)");
+    await runMigrationSteps(pool);
+  } finally {
+    try {
+      await lockClient.query("SELECT pg_advisory_unlock(727400)");
+    } finally {
+      lockClient.release();
+    }
+  }
+}
+
+async function runMigrationSteps(pool: Pool) {
   await pool.query(`
     SELECT pg_advisory_xact_lock(727401);
 
@@ -95,11 +120,17 @@ async function runMigrations() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT now()
     );
 
+    -- Dealership code shown on the employee sign-in link, and the team-size cap.
+    ALTER TABLE organizations ADD COLUMN IF NOT EXISTS access_slug TEXT;
+    ALTER TABLE organizations ADD COLUMN IF NOT EXISTS employee_limit INTEGER NOT NULL DEFAULT ${DEFAULT_EMPLOYEE_LIMIT};
+
     ALTER TABLE employees ADD COLUMN IF NOT EXISTS org_id UUID REFERENCES organizations(id);
     ALTER TABLE attempts ADD COLUMN IF NOT EXISTS org_id UUID REFERENCES organizations(id);
 
-    INSERT INTO organizations (id, clerk_org_id, name, rooftop_count, subscription_status)
-    VALUES ('${PLATFORM_ORG_ID}', NULL, 'CallDrive Internal', 1, 'active')
+    -- access_slug is supplied even though the row usually exists already: once the
+    -- column is NOT NULL, Postgres rejects a NULL here before it notices the conflict.
+    INSERT INTO organizations (id, clerk_org_id, name, rooftop_count, subscription_status, access_slug)
+    VALUES ('${PLATFORM_ORG_ID}', NULL, 'CallDrive Internal', 1, 'active', '${newAccessSlug()}')
     ON CONFLICT (id) DO NOTHING;
 
     UPDATE employees SET org_id = '${PLATFORM_ORG_ID}' WHERE org_id IS NULL;
@@ -110,22 +141,107 @@ async function runMigrations() {
     ALTER TABLE employees ALTER COLUMN org_id SET NOT NULL;
     ALTER TABLE attempts ALTER COLUMN org_id SET NOT NULL;
 
-    -- Employee names only need to be unique within one organization.
+    -- Employee names are unique within one organization, ignoring capitals,
+    -- because employees type their own name when they sign in.
     ALTER TABLE employees DROP CONSTRAINT IF EXISTS employees_name_key;
-    CREATE UNIQUE INDEX IF NOT EXISTS employees_org_name_idx ON employees (org_id, name);
+    DROP INDEX IF EXISTS employees_org_name_idx;
+    CREATE UNIQUE INDEX IF NOT EXISTS employees_org_lname_idx ON employees (org_id, lower(name));
     CREATE INDEX IF NOT EXISTS attempts_org_created_idx ON attempts (org_id, created_at DESC);
 
-    -- Each organization has its own manager code.
+    -- PINs are stored only as hashes, with lockout counters.
+    ALTER TABLE employees ADD COLUMN IF NOT EXISTS pin_hash TEXT;
+    ALTER TABLE employees ADD COLUMN IF NOT EXISTS failed_logins INTEGER NOT NULL DEFAULT 0;
+    ALTER TABLE employees ADD COLUMN IF NOT EXISTS locked_until TIMESTAMPTZ;
+    ALTER TABLE employees ALTER COLUMN pin DROP NOT NULL;
+
+    -- Each organization has its own manager code (stored hashed, with lockout).
     CREATE TABLE IF NOT EXISTS org_manager_codes (
       org_id UUID PRIMARY KEY REFERENCES organizations(id) ON DELETE CASCADE,
       code TEXT NOT NULL
     );
+    ALTER TABLE org_manager_codes ADD COLUMN IF NOT EXISTS code_hash TEXT;
+    ALTER TABLE org_manager_codes ADD COLUMN IF NOT EXISTS failed_attempts INTEGER NOT NULL DEFAULT 0;
+    ALTER TABLE org_manager_codes ADD COLUMN IF NOT EXISTS locked_until TIMESTAMPTZ;
+    ALTER TABLE org_manager_codes ALTER COLUMN code DROP NOT NULL;
     INSERT INTO org_manager_codes (org_id, code)
     SELECT '${PLATFORM_ORG_ID}', code FROM manager_settings WHERE id = 1
     ON CONFLICT (org_id) DO NOTHING;
+
+    -- A dealer asks the platform owner for a bigger team limit here.
+    CREATE TABLE IF NOT EXISTS seat_requests (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      org_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+      requested_limit INTEGER NOT NULL,
+      note TEXT,
+      status TEXT NOT NULL DEFAULT 'pending',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      decided_at TIMESTAMPTZ
+    );
+    CREATE UNIQUE INDEX IF NOT EXISTS seat_requests_one_pending
+      ON seat_requests (org_id) WHERE status = 'pending';
+  `);
+
+  await convertLegacyData(pool);
+
+  await pool.query(`
+    SELECT pg_advisory_xact_lock(727401);
+    ALTER TABLE employees ALTER COLUMN pin_hash SET NOT NULL;
+    ALTER TABLE organizations ALTER COLUMN access_slug SET NOT NULL;
+    CREATE UNIQUE INDEX IF NOT EXISTS organizations_access_slug_idx ON organizations (access_slug);
   `);
 
   await linkPlatformOrg(pool);
+}
+
+/**
+ * One-time conversion of older rows: hashes plaintext PINs and manager codes,
+ * removes the old plaintext copies, and gives every organization a dealership
+ * code. Does nothing once everything is converted.
+ */
+async function convertLegacyData(pool: Pool) {
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    await client.query("SELECT pg_advisory_xact_lock(727403)");
+
+    const employees = await client.query(
+      `SELECT id, pin FROM employees WHERE pin_hash IS NULL AND pin IS NOT NULL`
+    );
+    for (const row of employees.rows) {
+      await client.query(
+        `UPDATE employees SET pin_hash = $1, pin = NULL WHERE id = $2`,
+        [await hashSecret(row.pin), row.id]
+      );
+    }
+
+    const codes = await client.query(
+      `SELECT org_id, code FROM org_manager_codes WHERE code_hash IS NULL AND code IS NOT NULL`
+    );
+    for (const row of codes.rows) {
+      await client.query(
+        `UPDATE org_manager_codes SET code_hash = $1, code = NULL WHERE org_id = $2`,
+        [await hashSecret(row.code), row.org_id]
+      );
+    }
+
+    // The old single global code table held a plaintext copy; it is now redundant.
+    await client.query(`DELETE FROM manager_settings`);
+
+    const orgs = await client.query(`SELECT id FROM organizations WHERE access_slug IS NULL`);
+    for (const row of orgs.rows) {
+      await client.query(`UPDATE organizations SET access_slug = $1 WHERE id = $2`, [
+        newAccessSlug(),
+        row.id,
+      ]);
+    }
+
+    await client.query("COMMIT");
+  } catch (err) {
+    await client.query("ROLLBACK");
+    throw err;
+  } finally {
+    client.release();
+  }
 }
 
 /**
