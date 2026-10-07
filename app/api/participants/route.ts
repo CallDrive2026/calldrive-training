@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { verifyManagerCode } from "@/lib/store";
 import { deleteParticipant } from "@/lib/participants";
+import { requireManagerCode } from "@/lib/code-guard";
 import { getTenant } from "@/lib/tenant";
 
 export async function DELETE(request: Request) {
@@ -24,12 +24,8 @@ export async function DELETE(request: Request) {
       { status: 400 }
     );
   }
-  if (!code || !(await verifyManagerCode(orgId, code))) {
-    return NextResponse.json(
-      { error: "Incorrect manager code." },
-      { status: 401 }
-    );
-  }
+  const denied = await requireManagerCode(orgId, code);
+  if (denied) return denied;
 
   try {
     const result = await deleteParticipant(orgId, name);

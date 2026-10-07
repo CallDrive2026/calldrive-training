@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
-import {
-  isManagerCodeSet,
-  setManagerCodeIfUnset,
-  verifyManagerCode,
-} from "@/lib/store";
+import { isManagerCodeSet, setManagerCodeIfUnset } from "@/lib/store";
+import { requireManagerCode } from "@/lib/code-guard";
 import { getTenant } from "@/lib/tenant";
 
 export async function GET() {
@@ -22,9 +19,10 @@ export async function POST(request: Request) {
   const orgId = tenant.ctx.org.id;
 
   const body = await request.json().catch(() => ({}));
-  const { code, mode } = body;
+  const code = typeof body.code === "string" ? body.code : "";
+  const mode = body.mode;
 
-  if (!code || String(code).length < 4) {
+  if (code.length < 4) {
     return NextResponse.json({ error: "Code must be at least 4 characters." }, { status: 400 });
   }
 
@@ -35,7 +33,7 @@ export async function POST(request: Request) {
         { status: 403 }
       );
     }
-    const created = await setManagerCodeIfUnset(orgId, String(code));
+    const created = await setManagerCodeIfUnset(orgId, code);
     if (!created) {
       return NextResponse.json({ error: "A manager code is already set." }, { status: 409 });
     }
@@ -43,11 +41,7 @@ export async function POST(request: Request) {
   }
 
   // mode === "verify"
-  if (!(await isManagerCodeSet(orgId))) {
-    return NextResponse.json({ error: "No manager code has been set yet." }, { status: 400 });
-  }
-  if (!(await verifyManagerCode(orgId, String(code)))) {
-    return NextResponse.json({ error: "Incorrect manager code." }, { status: 401 });
-  }
+  const denied = await requireManagerCode(orgId, code);
+  if (denied) return denied;
   return NextResponse.json({ ok: true });
 }
