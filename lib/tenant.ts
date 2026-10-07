@@ -7,6 +7,7 @@ import {
   getOrgByClerkId,
   isOrgAccessActive,
 } from "@/lib/org";
+import { getRep } from "@/lib/rep-session";
 
 export interface TenantContext {
   org: Organization;
@@ -88,4 +89,25 @@ export async function requirePageOrg(): Promise<Organization> {
   const org = await resolveOrg(orgId);
   if (!isOrgAccessActive(org)) redirect("/pricing?trialEnded=1");
   return org;
+}
+
+/**
+ * Guard for the training pages. Allowed in: an employee signed in with their
+ * dealership code, name and PIN, or a signed-in dealer account. Anyone else is
+ * sent to the employee sign-in page.
+ */
+export async function requireTrainingAccess(): Promise<void> {
+  const rep = await getRep();
+  if (rep) {
+    if (!isOrgAccessActive(rep.org)) redirect("/login?inactive=1");
+    return;
+  }
+  const { userId, orgId } = await auth();
+  if (userId && orgId) {
+    const org = await resolveOrg(orgId);
+    if (!isOrgAccessActive(org)) redirect("/pricing?trialEnded=1");
+    return;
+  }
+  if (userId) redirect("/onboarding");
+  redirect("/login");
 }
