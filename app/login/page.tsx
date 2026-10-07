@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,50 +8,49 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, LogIn, Loader2 } from "lucide-react";
-import { setEmployee } from "@/lib/auth";
 
-interface EmployeeOption {
-  id: string;
-  name: string;
-  location: string;
+// Only allow sending people to a page on this site after they sign in.
+function safeNext(value: string | null): string {
+  if (!value || !value.startsWith("/") || value.startsWith("//") || value.includes("\\")) {
+    return "/";
+  }
+  return value;
 }
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const next = searchParams.get("next") || "/";
+  const next = safeNext(searchParams.get("next"));
+  const inactive = searchParams.get("inactive") === "1";
 
-  const [employees, setEmployees] = useState<EmployeeOption[]>([]);
+  const [dealerCode, setDealerCode] = useState(searchParams.get("d") || "");
   const [name, setName] = useState("");
   const [pin, setPin] = useState("");
-  const [error, setError] = useState("");
+  const [error, setError] = useState(
+    inactive
+      ? "This dealership's training account isn't active right now. Please contact your manager."
+      : ""
+  );
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    fetch("/api/employees")
-      .then((r) => (r.ok ? r.json() : []))
-      .then((d) => setEmployees(Array.isArray(d) ? d : []))
-      .catch(() => {});
-  }, []);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
     try {
-      const res = await fetch("/api/employees/login", {
+      const res = await fetch("/api/rep/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, pin }),
+        body: JSON.stringify({ dealerCode, name, pin }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setError(data.error || "Login failed.");
         setLoading(false);
         return;
       }
-      setEmployee(data);
       router.push(next);
+      router.refresh();
     } catch {
       setError("Something went wrong. Try again.");
       setLoading(false);
@@ -75,20 +74,27 @@ function LoginForm() {
               </Alert>
             )}
             <div className="space-y-2">
+              <Label htmlFor="dealerCode">Dealership Code</Label>
+              <Input
+                id="dealerCode"
+                value={dealerCode}
+                onChange={(e) => setDealerCode(e.target.value)}
+                placeholder="From your manager's link"
+                autoCapitalize="none"
+                autoCorrect="off"
+                required
+              />
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="name">Your Name</Label>
               <Input
                 id="name"
-                list="employee-names"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Start typing your name"
+                placeholder="First and last name"
+                autoComplete="off"
                 required
               />
-              <datalist id="employee-names">
-                {employees.map((e) => (
-                  <option key={e.id} value={e.name} />
-                ))}
-              </datalist>
             </div>
             <div className="space-y-2">
               <Label htmlFor="pin">PIN</Label>
@@ -99,6 +105,7 @@ function LoginForm() {
                 value={pin}
                 onChange={(e) => setPin(e.target.value)}
                 placeholder="••••"
+                autoComplete="off"
                 required
               />
             </div>
@@ -107,7 +114,8 @@ function LoginForm() {
               Sign In
             </Button>
             <p className="text-xs text-neutral-500 text-center">
-              Don&apos;t have an account? Ask your manager to add you from the Manager Dashboard.
+              Don&apos;t have an account? Ask your manager to add you. Your manager can
+              also send you a link that fills in the dealership code.
             </p>
           </form>
         </CardContent>
