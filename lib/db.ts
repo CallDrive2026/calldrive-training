@@ -15,12 +15,31 @@ export function getPool(): Pool {
   return global.__pgPool;
 }
 
-let migrated = false;
+/** The platform owner's organization (internal use, never billed). */
+export const PLATFORM_ORG_ID = "00000000-0000-0000-0000-000000000001";
 
-export async function ensureSchema() {
-  if (migrated) return;
+let migration: Promise<void> | null = null;
+
+/**
+ * Creates/upgrades the schema. Safe to call on every request: the work runs
+ * once per server instance and is serialized across instances with an
+ * advisory lock.
+ */
+export function ensureSchema(): Promise<void> {
+  if (!migration) {
+    migration = runMigrations().catch((err) => {
+      migration = null;
+      throw err;
+    });
+  }
+  return migration;
+}
+
+async function runMigrations() {
   const pool = getPool();
   await pool.query(`
+    SELECT pg_advisory_xact_lock(727401);
+
     CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
     CREATE TABLE IF NOT EXISTS employees (
@@ -80,11 +99,67 @@ export async function ensureSchema() {
     ALTER TABLE attempts ADD COLUMN IF NOT EXISTS org_id UUID REFERENCES organizations(id);
 
     INSERT INTO organizations (id, clerk_org_id, name, rooftop_count, subscription_status)
-    VALUES ('00000000-0000-0000-0000-000000000001', NULL, 'CallDrive Internal', 1, 'active')
+    VALUES ('${PLATFORM_ORG_ID}', NULL, 'CallDrive Internal', 1, 'active')
     ON CONFLICT (id) DO NOTHING;
 
-    UPDATE employees SET org_id = '00000000-0000-0000-0000-000000000001' WHERE org_id IS NULL;
-    UPDATE attempts SET org_id = '00000000-0000-0000-0000-000000000001' WHERE org_id IS NULL;
+    UPDATE employees SET org_id = '${PLATFORM_ORG_ID}' WHERE org_id IS NULL;
+    UPDATE attempts SET org_id = '${PLATFORM_ORG_ID}' WHERE org_id IS NULL;
+
+    -- Every row must belong to an organization. An unscoped write now fails
+    -- loudly instead of silently leaking into another customer's data.
+    ALTER TABLE employees ALTER COLUMN org_id SET NOT NULL;
+    ALTER TABLE attempts ALTER COLUMN org_id SET NOT NULL;
+
+    -- Employee names only need to be unique within one organization.
+    ALTER TABLE employees DROP CONSTRAINT IF EXISTS employees_name_key;
+    CREATE UNIQUE INDEX IF NOT EXISTS employees_org_name_idx ON employees (org_id, name);
+    CREATE INDEX IF NOT EXISTS attempts_org_created_idx ON attempts (org_id, created_at DESC);
+
+    -- Each organization has its own manager code.
+    CREATE TABLE IF NOT EXISTS org_manager_codes (
+      org_id UUID PRIMARY KEY REFERENCES organizations(id) ON DELETE CASCADE,
+      code TEXT NOT NULL
+    );
+    INSERT INTO org_manager_codes (org_id, code)
+    SELECT '${PLATFORM_ORG_ID}', code FROM manager_settings WHERE id = 1
+    ON CONFLICT (org_id) DO NOTHING;
   `);
-  migrated = true;
+
+  await linkPlatformOrg(pool);
+}
+
+/**
+ * Attaches the platform owner's Clerk organization (PLATFORM_CLERK_ORG_ID) to
+ * the internal, never-billed organization record. If that Clerk org already
+ * got an auto-created trial row, it is only replaced when it is completely
+ * empty (no billing, no employees, no attempts).
+ */
+export async function linkPlatformOrg(pool: Pool = getPool()) {
+  const clerkOrgId = process.env.PLATFORM_CLERK_ORG_ID;
+  if (!clerkOrgId) return;
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    await client.query("SELECT pg_advisory_xact_lock(727402)");
+    await client.query(
+      `DELETE FROM organizations o
+       WHERE o.clerk_org_id = $1 AND o.id <> $2
+         AND o.stripe_customer_id IS NULL AND o.stripe_subscription_id IS NULL
+         AND NOT EXISTS (SELECT 1 FROM employees e WHERE e.org_id = o.id)
+         AND NOT EXISTS (SELECT 1 FROM attempts a WHERE a.org_id = o.id)`,
+      [clerkOrgId, PLATFORM_ORG_ID]
+    );
+    await client.query(
+      `UPDATE organizations SET clerk_org_id = $1
+       WHERE id = $2 AND clerk_org_id IS DISTINCT FROM $1
+         AND NOT EXISTS (SELECT 1 FROM organizations WHERE clerk_org_id = $1)`,
+      [clerkOrgId, PLATFORM_ORG_ID]
+    );
+    await client.query("COMMIT");
+  } catch (err) {
+    await client.query("ROLLBACK");
+    console.error("Could not link the platform organization", err);
+  } finally {
+    client.release();
+  }
 }

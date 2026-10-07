@@ -52,8 +52,11 @@ export async function createTrialOrg(clerkOrgId: string, name: string): Promise<
 
 export function isOrgAccessActive(org: Organization): boolean {
   if (org.subscriptionStatus === "active" || org.subscriptionStatus === "trialing_active") return true;
-  if (org.subscriptionStatus === "trialing" && org.trialEndsAt) {
-    return new Date(org.trialEndsAt).getTime() > Date.now();
+  if (org.subscriptionStatus === "trialing") {
+    // Once checkout is complete the trial is governed by Stripe, which flips
+    // the status by webhook when the trial ends or a payment fails.
+    if (org.stripeSubscriptionId) return true;
+    if (org.trialEndsAt) return new Date(org.trialEndsAt).getTime() > Date.now();
   }
   return false;
 }

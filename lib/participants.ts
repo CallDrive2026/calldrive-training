@@ -6,11 +6,14 @@ export interface DeleteParticipantResult {
 }
 
 /**
- * Permanently removes a participant: their login account (if one exists)
- * and every training attempt recorded under their name. Runs in a single
- * transaction so it either fully succeeds or leaves everything untouched.
+ * Permanently removes a participant from ONE organization: their login
+ * account (if one exists) and every training attempt recorded under their
+ * name in that organization. Other organizations are never touched. Runs in
+ * a single transaction so it either fully succeeds or leaves everything
+ * untouched.
  */
 export async function deleteParticipant(
+  orgId: string,
   name: string
 ): Promise<DeleteParticipantResult> {
   await ensureSchema();
@@ -18,12 +21,12 @@ export async function deleteParticipant(
   try {
     await client.query("BEGIN");
     const attempts = await client.query(
-      `DELETE FROM attempts WHERE employee_name = $1`,
-      [name]
+      `DELETE FROM attempts WHERE org_id = $1 AND employee_name = $2`,
+      [orgId, name]
     );
     const account = await client.query(
-      `DELETE FROM employees WHERE name = $1`,
-      [name]
+      `DELETE FROM employees WHERE org_id = $1 AND name = $2`,
+      [orgId, name]
     );
     await client.query("COMMIT");
     return {

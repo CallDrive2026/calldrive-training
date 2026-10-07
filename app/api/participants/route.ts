@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
 import { verifyManagerCode } from "@/lib/store";
 import { deleteParticipant } from "@/lib/participants";
+import { getTenant } from "@/lib/tenant";
 
 export async function DELETE(request: Request) {
+  const tenant = await getTenant({ requireAdmin: true });
+  if (!tenant.ok) return tenant.response;
+  const orgId = tenant.ctx.org.id;
+
   let body: { name?: unknown; code?: unknown } = {};
   try {
     body = await request.json();
@@ -19,7 +24,7 @@ export async function DELETE(request: Request) {
       { status: 400 }
     );
   }
-  if (!code || !(await verifyManagerCode(code))) {
+  if (!code || !(await verifyManagerCode(orgId, code))) {
     return NextResponse.json(
       { error: "Incorrect manager code." },
       { status: 401 }
@@ -27,7 +32,7 @@ export async function DELETE(request: Request) {
   }
 
   try {
-    const result = await deleteParticipant(name);
+    const result = await deleteParticipant(orgId, name);
     if (!result.accountRemoved && result.attemptsRemoved === 0) {
       return NextResponse.json(
         { error: "Participant not found." },

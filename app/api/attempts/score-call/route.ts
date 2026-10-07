@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getScenario } from "@/lib/scenarios";
-import { addAttempt } from "@/lib/store";
+import { addAttempt, findEmployeeByName } from "@/lib/store";
+import { getTenant } from "@/lib/tenant";
 
 interface GeminiCategoryScore {
   name: string;
@@ -52,19 +53,23 @@ Grading guidance: a passing response covers most of the checklist naturally, sou
 
 export async function POST(request: Request) {
   try {
+    // Must be signed in to an organization with an active trial/subscription.
+    // This also keeps the paid scoring service from being called anonymously.
+    const tenant = await getTenant();
+    if (!tenant.ok) return tenant.response;
+    const orgId = tenant.ctx.org.id;
+
     const body = await request.json();
     const {
       scenarioId,
       audioBase64,
       mimeType,
       employeeName,
-      location,
     } = body as {
       scenarioId: string;
       audioBase64: string;
       mimeType: string;
       employeeName?: string;
-      location?: string;
     };
 
     if (!scenarioId || !audioBase64) {
@@ -77,6 +82,21 @@ export async function POST(request: Request) {
     const scenario = getScenario(scenarioId);
     if (!scenario) {
       return NextResponse.json({ error: "Unknown scenario." }, { status: 404 });
+    }
+
+    // Attribute the attempt only to a real employee of THIS organization.
+    // Name and location come from our records, not from the browser.
+    const employee = employeeName
+      ? await findEmployeeByName(orgId, employeeName)
+      : null;
+    if (!employee) {
+      return NextResponse.json(
+        {
+          error:
+            "We couldn't match you to an employee account in this organization. Please sign in again.",
+        },
+        { status: 403 }
+      );
     }
 
     const apiKey = process.env.GEMINI_API_KEY;
@@ -153,9 +173,9 @@ export async function POST(request: Request) {
     const overallScore = Math.max(0, Math.min(100, Math.round(parsed.overallScore)));
     const passed = overallScore >= scenario.passingScore;
 
-    const attempt = await addAttempt({
-      employeeName: employeeName || "Anonymous",
-      location: location || "Unspecified",
+    const attempt = await addAttempt(orgId, {
+      employeeName: employee.name,
+      location: employee.location,
       role: scenario.role,
       scenarioId: scenario.id,
       scenarioTitle: scenario.title,
