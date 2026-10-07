@@ -34,6 +34,8 @@ export function DashboardClient() {
   const [attempts, setAttempts] = useState<Attempt[]>([]);
   const [leads, setLeads] = useState<PilotLead[]>([]);
   const [loading, setLoading] = useState(true);
+  const [accessError, setAccessError] = useState<string | null>(null);
+  const [canSeeLeads, setCanSeeLeads] = useState(false);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   useEffect(() => {
@@ -42,15 +44,25 @@ export function DashboardClient() {
 
   const fetchAttempts = useCallback(async () => {
     setLoading(true);
+    setAccessError(null);
     try {
       const [attemptsRes, leadsRes] = await Promise.all([
         fetch("/api/attempts"),
         fetch("/api/pilot-leads"),
       ]);
-      const attemptsData = await attemptsRes.json();
-      setAttempts(attemptsData);
+      if (!attemptsRes.ok) {
+        const err = await attemptsRes.json().catch(() => ({}));
+        setAccessError(err.error || "Could not load dashboard data.");
+        setAttempts([]);
+      } else {
+        setAttempts(await attemptsRes.json());
+      }
       if (leadsRes.ok) {
         setLeads(await leadsRes.json());
+        setCanSeeLeads(true);
+      } else {
+        setLeads([]);
+        setCanSeeLeads(false);
       }
     } finally {
       setLoading(false);
@@ -128,6 +140,20 @@ export function DashboardClient() {
         </div>
         <Skeleton className="h-64" />
       </div>
+    );
+  }
+
+  if (accessError) {
+    return (
+      <Card>
+        <CardContent className="py-12 text-center space-y-4">
+          <ShieldCheck className="h-10 w-10 text-[#B4443A] mx-auto" />
+          <p className="text-neutral-600">{accessError}</p>
+          <Button variant="outline" onClick={fetchAttempts}>
+            Try again
+          </Button>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -317,6 +343,7 @@ export function DashboardClient() {
         </CardContent>
       </Card>
 
+      {canSeeLeads && (
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
@@ -352,6 +379,7 @@ export function DashboardClient() {
           )}
         </CardContent>
       </Card>
+      )}
     </div>
   );
 }
