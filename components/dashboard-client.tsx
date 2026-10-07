@@ -186,6 +186,16 @@ export function DashboardClient() {
         </Card>
       </div>
 
+      {canSeeLeads && (
+        <div className="flex justify-end">
+          <Link href="/platform">
+            <Button variant="outline" size="sm">
+              Platform admin: seat requests &amp; team limits
+            </Button>
+          </Link>
+        </div>
+      )}
+
       <EmployeeManager onChange={fetchAttempts} />
 
       <Card>
