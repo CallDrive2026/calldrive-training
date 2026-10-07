@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { getScenario } from "@/lib/scenarios";
-import { addAttempt, findEmployeeByName } from "@/lib/store";
-import { getTenant } from "@/lib/tenant";
+import { addAttempt } from "@/lib/store";
+import { getRep } from "@/lib/rep-session";
+import { isOrgAccessActive } from "@/lib/org";
 
 interface GeminiCategoryScore {
   name: string;
@@ -53,23 +54,30 @@ Grading guidance: a passing response covers most of the checklist naturally, sou
 
 export async function POST(request: Request) {
   try {
-    // Must be signed in to an organization with an active trial/subscription.
-    // This also keeps the paid scoring service from being called anonymously.
-    const tenant = await getTenant();
-    if (!tenant.ok) return tenant.response;
-    const orgId = tenant.ctx.org.id;
+    // Must be an employee signed in with their dealership code, name and PIN,
+    // at a dealership with an active trial/subscription. This also keeps the
+    // paid scoring service from being called anonymously.
+    const rep = await getRep();
+    if (!rep) {
+      return NextResponse.json(
+        { error: "Please sign in with your dealership code, name and PIN." },
+        { status: 401 }
+      );
+    }
+    if (!isOrgAccessActive(rep.org)) {
+      return NextResponse.json(
+        { error: "This dealership's training account isn't active right now." },
+        { status: 402 }
+      );
+    }
+    const orgId = rep.org.id;
+    const employee = rep.employee;
 
     const body = await request.json();
-    const {
-      scenarioId,
-      audioBase64,
-      mimeType,
-      employeeName,
-    } = body as {
+    const { scenarioId, audioBase64, mimeType } = body as {
       scenarioId: string;
       audioBase64: string;
       mimeType: string;
-      employeeName?: string;
     };
 
     if (!scenarioId || !audioBase64) {
@@ -82,21 +90,6 @@ export async function POST(request: Request) {
     const scenario = getScenario(scenarioId);
     if (!scenario) {
       return NextResponse.json({ error: "Unknown scenario." }, { status: 404 });
-    }
-
-    // Attribute the attempt only to a real employee of THIS organization.
-    // Name and location come from our records, not from the browser.
-    const employee = employeeName
-      ? await findEmployeeByName(orgId, employeeName)
-      : null;
-    if (!employee) {
-      return NextResponse.json(
-        {
-          error:
-            "We couldn't match you to an employee account in this organization. Please sign in again.",
-        },
-        { status: 403 }
-      );
     }
 
     const apiKey = process.env.GEMINI_API_KEY;

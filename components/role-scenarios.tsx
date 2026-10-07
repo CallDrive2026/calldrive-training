@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Scenario } from "@/types";
 import { LEVELS, LEVEL_ORDER } from "@/lib/scenarios";
-import { getPassedIds } from "@/lib/progress";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Phone, ArrowRight, Lock, CheckCircle } from "lucide-react";
@@ -19,8 +18,11 @@ export function RoleScenarios({ role, scenarios }: Props) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setPassedIds(getPassedIds());
-    setMounted(true);
+    fetch("/api/rep/progress")
+      .then((r) => (r.ok ? r.json() : { passedIds: [] }))
+      .then((d) => setPassedIds(new Set<string>(d.passedIds ?? [])))
+      .catch(() => undefined)
+      .finally(() => setMounted(true));
   }, []);
 
   const byLevel = useMemo(() => {

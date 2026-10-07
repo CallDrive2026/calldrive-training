@@ -10,8 +10,6 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Certificate } from "@/components/certificate";
 import { CallRecorder } from "@/components/call-recorder";
-import { markPassed } from "@/lib/progress";
-import { getEmployee, LoggedInEmployee } from "@/lib/auth";
 import { CheckCircle, XCircle, Phone, User, Copy, Check } from "lucide-react";
 
 interface Props {
@@ -37,9 +35,14 @@ interface ScoreResult {
   wordTrack: string | null;
 }
 
+interface SignedInEmployee {
+  name: string;
+  location: string;
+}
+
 export function ScenarioPractice({ scenario, roleLabel }: Props) {
   const router = useRouter();
-  const [employee, setEmployeeState] = useState<LoggedInEmployee | null | undefined>(undefined);
+  const [employee, setEmployeeState] = useState<SignedInEmployee | null | undefined>(undefined);
   const [step, setStep] = useState<Step>("intro");
   const [checklist, setChecklist] = useState<boolean[]>(
     new Array(scenario.checklist.length).fill(false)
@@ -50,12 +53,16 @@ export function ScenarioPractice({ scenario, roleLabel }: Props) {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    const emp = getEmployee();
-    if (!emp) {
-      router.replace(`/login?next=/train/${scenario.role}/${scenario.id}`);
-      return;
-    }
-    setEmployeeState(emp);
+    fetch("/api/rep/me")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((emp) => {
+        if (!emp) {
+          router.replace(`/login?next=/train/${scenario.role}/${scenario.id}`);
+          return;
+        }
+        setEmployeeState(emp);
+      })
+      .catch(() => router.replace(`/login?next=/train/${scenario.role}/${scenario.id}`));
   }, [router, scenario.role, scenario.id]);
 
   const toggleChecklist = (i: number) => {
@@ -76,8 +83,6 @@ export function ScenarioPractice({ scenario, roleLabel }: Props) {
             scenarioId: scenario.id,
             audioBase64,
             mimeType,
-            employeeName: employee?.name || "Anonymous",
-            location: employee?.location || "Unspecified",
           }),
         });
         const data = await res.json();
@@ -85,9 +90,6 @@ export function ScenarioPractice({ scenario, roleLabel }: Props) {
           setErrorMsg(data.error || "Something went wrong scoring your call.");
           setStep("error");
           return;
-        }
-        if (data.passed) {
-          markPassed(scenario.id);
         }
         setResult({
           score: data.score,

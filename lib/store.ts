@@ -1,17 +1,30 @@
-import { timingSafeEqual } from "crypto";
 import { Attempt, CategoryScore, PilotLead } from "@/types";
 import { getPool, ensureSchema } from "@/lib/db";
+import { burnVerifyTime, hashSecret, sessionKeyFor, verifySecret } from "@/lib/secrets";
 
 // Every employee, attempt and manager-code function below takes the
 // organization id as its first argument and filters on it. The id must come
-// from the signed-in session (see lib/tenant.ts), never from the request body.
+// from a verified session (see lib/tenant.ts and lib/rep-session.ts), never
+// from the request body.
+
+/** Wrong guesses allowed before a PIN / manager code is locked, and for how long. */
+export const MAX_FAILED_ATTEMPTS = 5;
+export const LOCK_MINUTES = 15;
 
 export interface EmployeeRecord {
   id: string;
   name: string;
-  pin: string;
   location: string;
   createdAt: string;
+}
+
+export class SeatLimitError extends Error {
+  limit: number;
+  constructor(limit: number) {
+    super(`This account is limited to ${limit} team members.`);
+    this.name = "SeatLimitError";
+    this.limit = limit;
+  }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -39,9 +52,8 @@ function rowToEmployee(r: any): EmployeeRecord {
   return {
     id: r.id,
     name: r.name,
-    pin: r.pin,
     location: r.location,
-    createdAt: r.created_at.toISOString(),
+    createdAt: new Date(r.created_at).toISOString(),
   };
 }
 
@@ -100,6 +112,20 @@ export async function addAttempt(
   return rowToAttempt(rows[0]);
 }
 
+/** Scenarios this employee has passed (drives which levels unlock for them). */
+export async function listPassedScenarioIds(
+  orgId: string,
+  employeeName: string
+): Promise<string[]> {
+  await ensureSchema();
+  const { rows } = await getPool().query(
+    `SELECT DISTINCT scenario_id FROM attempts
+     WHERE org_id = $1 AND employee_name = $2 AND passed = true`,
+    [orgId, employeeName]
+  );
+  return rows.map((r) => r.scenario_id as string);
+}
+
 // Pilot leads are the platform owner's own sales leads (not customer data).
 export async function addPilotLead(lead: {
   name: string;
@@ -137,16 +163,25 @@ export async function listPilotLeads(): Promise<PilotLead[]> {
   }));
 }
 
+// ---------------------------------------------------------------------------
+// Employees
+// ---------------------------------------------------------------------------
+
 export async function listEmployees(orgId: string): Promise<EmployeeRecord[]> {
   await ensureSchema();
   const { rows } = await getPool().query(
-    `SELECT id, name, pin, location, created_at FROM employees
+    `SELECT id, name, location, created_at FROM employees
      WHERE org_id = $1 ORDER BY created_at DESC`,
     [orgId]
   );
   return rows.map(rowToEmployee);
 }
 
+/**
+ * Adds an employee, enforcing the account's team-size limit. The check runs
+ * while the organization row is locked, so two simultaneous adds cannot both
+ * slip past the limit.
+ */
 export async function addEmployee(
   orgId: string,
   name: string,
@@ -154,26 +189,46 @@ export async function addEmployee(
   location: string
 ): Promise<EmployeeRecord> {
   await ensureSchema();
-  const existing = await getPool().query(
-    `SELECT id FROM employees WHERE org_id = $1 AND name = $2`,
-    [orgId, name]
-  );
-  if (existing.rows.length > 0) {
-    throw new Error("An employee with that name already exists.");
-  }
+  const pinHash = await hashSecret(pin);
+  const client = await getPool().connect();
   try {
-    const { rows } = await getPool().query(
-      `INSERT INTO employees (org_id, name, pin, location) VALUES ($1, $2, $3, $4)
-       RETURNING id, name, pin, location, created_at`,
-      [orgId, name, pin, location]
+    await client.query("BEGIN");
+    const org = await client.query(
+      `SELECT employee_limit FROM organizations WHERE id = $1 FOR UPDATE`,
+      [orgId]
     );
+    if (org.rows.length === 0) throw new Error("Organization not found.");
+    const limit: number = org.rows[0].employee_limit;
+
+    const count = await client.query(
+      `SELECT count(*)::int AS n FROM employees WHERE org_id = $1`,
+      [orgId]
+    );
+    if (count.rows[0].n >= limit) throw new SeatLimitError(limit);
+
+    const existing = await client.query(
+      `SELECT 1 FROM employees WHERE org_id = $1 AND lower(name) = lower($2)`,
+      [orgId, name]
+    );
+    if (existing.rows.length > 0) {
+      throw new Error("An employee with that name already exists.");
+    }
+
+    const { rows } = await client.query(
+      `INSERT INTO employees (org_id, name, pin_hash, location) VALUES ($1, $2, $3, $4)
+       RETURNING id, name, location, created_at`,
+      [orgId, name, pinHash, location]
+    );
+    await client.query("COMMIT");
     return rowToEmployee(rows[0]);
   } catch (err) {
-    // 23505 = unique violation (two requests raced past the check above)
+    await client.query("ROLLBACK");
     if ((err as { code?: string }).code === "23505") {
       throw new Error("An employee with that name already exists.");
     }
     throw err;
+  } finally {
+    client.release();
   }
 }
 
@@ -186,37 +241,127 @@ export async function deleteEmployee(orgId: string, id: string): Promise<boolean
   return (rowCount ?? 0) > 0;
 }
 
-export async function findEmployeeByName(
+/** Manager sets a new PIN for an employee (also clears any lockout). */
+export async function resetEmployeePin(
   orgId: string,
-  name: string
+  id: string,
+  pin: string
+): Promise<boolean> {
+  await ensureSchema();
+  const { rowCount } = await getPool().query(
+    `UPDATE employees SET pin_hash = $1, failed_logins = 0, locked_until = NULL
+     WHERE id = $2 AND org_id = $3`,
+    [await hashSecret(pin), id, orgId]
+  );
+  return (rowCount ?? 0) > 0;
+}
+
+export async function getEmployeeById(
+  orgId: string,
+  id: string
 ): Promise<EmployeeRecord | null> {
   await ensureSchema();
   const { rows } = await getPool().query(
-    `SELECT id, name, pin, location, created_at FROM employees
-     WHERE org_id = $1 AND name = $2`,
-    [orgId, name]
+    `SELECT id, name, location, created_at FROM employees WHERE org_id = $1 AND id = $2`,
+    [orgId, id]
   );
   return rows.length === 0 ? null : rowToEmployee(rows[0]);
 }
 
-export async function findEmployeeByNamePin(
+/** Employee plus the fingerprint that ties a session cookie to their current PIN. */
+export async function getEmployeeForSession(
+  orgId: string,
+  id: string
+): Promise<{ employee: EmployeeRecord; sessionKey: string } | null> {
+  await ensureSchema();
+  const { rows } = await getPool().query(
+    `SELECT id, name, location, created_at, pin_hash FROM employees WHERE org_id = $1 AND id = $2`,
+    [orgId, id]
+  );
+  if (rows.length === 0) return null;
+  return { employee: rowToEmployee(rows[0]), sessionKey: sessionKeyFor(rows[0].pin_hash) };
+}
+
+export type LoginResult =
+  | { status: "ok"; employee: EmployeeRecord; sessionKey: string }
+  | { status: "invalid" }
+  | { status: "locked"; retryAfterSeconds: number };
+
+/**
+ * Checks an employee's name + PIN. Every try is counted BEFORE the PIN is
+ * compared (under a row lock), so a burst of simultaneous guesses cannot
+ * slip extra attempts past the lockout.
+ */
+export async function verifyEmployeeLogin(
   orgId: string,
   name: string,
   pin: string
-): Promise<EmployeeRecord | null> {
+): Promise<LoginResult> {
   await ensureSchema();
-  const { rows } = await getPool().query(
-    `SELECT id, name, pin, location, created_at FROM employees
-     WHERE org_id = $1 AND name = $2 AND pin = $3`,
-    [orgId, name, pin]
+  const pool = getPool();
+  const client = await pool.connect();
+  let employee: EmployeeRecord;
+  let pinHash: string;
+  try {
+    await client.query("BEGIN");
+    const { rows } = await client.query(
+      `SELECT id, name, location, created_at, pin_hash, failed_logins,
+              GREATEST(0, CEIL(EXTRACT(EPOCH FROM (locked_until - now()))))::int AS lock_left
+       FROM employees WHERE org_id = $1 AND lower(name) = lower($2) FOR UPDATE`,
+      [orgId, name]
+    );
+    if (rows.length === 0) {
+      await client.query("ROLLBACK");
+      await burnVerifyTime(pin);
+      return { status: "invalid" };
+    }
+    const row = rows[0];
+    if (row.lock_left > 0) {
+      await client.query("ROLLBACK");
+      return { status: "locked", retryAfterSeconds: row.lock_left };
+    }
+    const tripsLock = row.failed_logins + 1 >= MAX_FAILED_ATTEMPTS;
+    await client.query(
+      `UPDATE employees SET
+         failed_logins = $2,
+         locked_until = CASE WHEN $3 THEN now() + make_interval(mins => $4) ELSE NULL END
+       WHERE id = $1`,
+      [row.id, tripsLock ? 0 : row.failed_logins + 1, tripsLock, LOCK_MINUTES]
+    );
+    await client.query("COMMIT");
+    employee = rowToEmployee(row);
+    pinHash = row.pin_hash;
+  } catch (err) {
+    await client.query("ROLLBACK").catch(() => undefined);
+    throw err;
+  } finally {
+    client.release();
+  }
+
+  if (await verifySecret(pin, pinHash)) {
+    await pool.query(
+      `UPDATE employees SET failed_logins = 0, locked_until = NULL WHERE id = $1`,
+      [employee.id]
+    );
+    return { status: "ok", employee, sessionKey: sessionKeyFor(pinHash) };
+  }
+  const state = await pool.query(
+    `SELECT GREATEST(0, CEIL(EXTRACT(EPOCH FROM (locked_until - now()))))::int AS lock_left
+     FROM employees WHERE id = $1`,
+    [employee.id]
   );
-  return rows.length === 0 ? null : rowToEmployee(rows[0]);
+  const left = state.rows[0]?.lock_left ?? 0;
+  return left > 0 ? { status: "locked", retryAfterSeconds: left } : { status: "invalid" };
 }
+
+// ---------------------------------------------------------------------------
+// Manager code (one per organization)
+// ---------------------------------------------------------------------------
 
 export async function isManagerCodeSet(orgId: string): Promise<boolean> {
   await ensureSchema();
   const { rows } = await getPool().query(
-    `SELECT 1 FROM org_manager_codes WHERE org_id = $1`,
+    `SELECT 1 FROM org_manager_codes WHERE org_id = $1 AND code_hash IS NOT NULL`,
     [orgId]
   );
   return rows.length > 0;
@@ -229,24 +374,74 @@ export async function setManagerCodeIfUnset(
 ): Promise<boolean> {
   await ensureSchema();
   const { rowCount } = await getPool().query(
-    `INSERT INTO org_manager_codes (org_id, code) VALUES ($1, $2)
+    `INSERT INTO org_manager_codes (org_id, code_hash) VALUES ($1, $2)
      ON CONFLICT (org_id) DO NOTHING`,
-    [orgId, code]
+    [orgId, await hashSecret(code)]
   );
   return (rowCount ?? 0) > 0;
 }
 
-export async function verifyManagerCode(
+export type CodeResult =
+  | { status: "ok" }
+  | { status: "unset" }
+  | { status: "invalid" }
+  | { status: "locked"; retryAfterSeconds: number };
+
+/** Checks the manager code with the same count-first lockout as employee PINs. */
+export async function checkManagerCode(
   orgId: string,
   code: string
-): Promise<boolean> {
+): Promise<CodeResult> {
   await ensureSchema();
-  const { rows } = await getPool().query(
-    `SELECT code FROM org_manager_codes WHERE org_id = $1`,
+  const pool = getPool();
+  const client = await pool.connect();
+  let codeHash: string;
+  try {
+    await client.query("BEGIN");
+    const { rows } = await client.query(
+      `SELECT code_hash, failed_attempts,
+              GREATEST(0, CEIL(EXTRACT(EPOCH FROM (locked_until - now()))))::int AS lock_left
+       FROM org_manager_codes WHERE org_id = $1 AND code_hash IS NOT NULL FOR UPDATE`,
+      [orgId]
+    );
+    if (rows.length === 0) {
+      await client.query("ROLLBACK");
+      return { status: "unset" };
+    }
+    const row = rows[0];
+    if (row.lock_left > 0) {
+      await client.query("ROLLBACK");
+      return { status: "locked", retryAfterSeconds: row.lock_left };
+    }
+    const tripsLock = row.failed_attempts + 1 >= MAX_FAILED_ATTEMPTS;
+    await client.query(
+      `UPDATE org_manager_codes SET
+         failed_attempts = $2,
+         locked_until = CASE WHEN $3 THEN now() + make_interval(mins => $4) ELSE NULL END
+       WHERE org_id = $1`,
+      [orgId, tripsLock ? 0 : row.failed_attempts + 1, tripsLock, LOCK_MINUTES]
+    );
+    await client.query("COMMIT");
+    codeHash = row.code_hash;
+  } catch (err) {
+    await client.query("ROLLBACK").catch(() => undefined);
+    throw err;
+  } finally {
+    client.release();
+  }
+
+  if (await verifySecret(code, codeHash)) {
+    await pool.query(
+      `UPDATE org_manager_codes SET failed_attempts = 0, locked_until = NULL WHERE org_id = $1`,
+      [orgId]
+    );
+    return { status: "ok" };
+  }
+  const state = await pool.query(
+    `SELECT GREATEST(0, CEIL(EXTRACT(EPOCH FROM (locked_until - now()))))::int AS lock_left
+     FROM org_manager_codes WHERE org_id = $1`,
     [orgId]
   );
-  if (rows.length === 0) return false;
-  const expected = Buffer.from(String(rows[0].code));
-  const given = Buffer.from(String(code));
-  return expected.length === given.length && timingSafeEqual(expected, given);
+  const left = state.rows[0]?.lock_left ?? 0;
+  return left > 0 ? { status: "locked", retryAfterSeconds: left } : { status: "invalid" };
 }
