@@ -9,6 +9,7 @@ import { scenariosPart7 } from "./scenario-data-part7";
 import { scenariosPart8 } from "./scenario-data-part8";
 import { scenariosPart9 } from "./scenario-data-part9";
 import { scenariosPart10 } from "./scenario-data-part10";
+import { scenariosPart11 } from "./scenario-data-part11";
 
 export const ROLES: RoleInfo[] = [
   {
@@ -59,6 +60,7 @@ export const SCENARIOS: Scenario[] = [
   ...scenariosPart8,
   ...scenariosPart9,
   ...scenariosPart10,
+  ...scenariosPart11,
 ];
 
 export function getScenariosByRole(role: string): Scenario[] {
